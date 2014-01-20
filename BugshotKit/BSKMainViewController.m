@@ -8,15 +8,9 @@
 #import "BSKScreenshotViewController.h"
 #import "BSKToggleButton.h"
 #import <QuartzCore/QuartzCore.h>
-
-static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
-{
-    UIGraphicsBeginImageContextWithOptions(size, NO, [UIScreen mainScreen].scale);
-    drawingCommands();
-    UIImage *finalImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return finalImage;
-}
+#import <unistd.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 
 @interface BSKMainViewController ()
 @property (nonatomic) BSKToggleButton *includeScreenshotToggle;
@@ -284,8 +278,31 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
     UIImage *screenshot = self.includeScreenshotToggle.on ? (BugshotKit.sharedManager.annotatedImage ?: BugshotKit.sharedManager.snapshotImage) : nil;
     NSString *log = self.includeLogToggle.on ? [BugshotKit.sharedManager currentConsoleLogWithDateStamps:YES] : nil;
     if (log && ! log.length) log = nil;
-    NSDictionary *userInfo = BugshotKit.sharedManager.extraInfoBlock ? BugshotKit.sharedManager.extraInfoBlock() : nil;
-    NSData *userInfoJSON = userInfo && userInfo.count ? [NSJSONSerialization dataWithJSONObject:userInfo options:NSJSONWritingPrettyPrinted error:NULL] : nil;
+    
+    NSString *appNameString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
+    NSString *appVersionString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+
+	size_t size;
+	sysctlbyname("hw.machine", NULL, &size, NULL, 0); 
+	char *name = malloc(size);
+	sysctlbyname("hw.machine", name, &size, NULL, 0);
+	NSString *modelIdentifier = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
+	free(name);
+
+    NSDictionary *userInfo = @{
+        @"appName" : appNameString,
+        @"appVersion" : appVersionString,
+        @"systemVersion" : UIDevice.currentDevice.systemVersion,
+        @"deviceModel" : modelIdentifier,
+    };
+    
+    NSDictionary *extraUserInfo = BugshotKit.sharedManager.extraInfoBlock ? BugshotKit.sharedManager.extraInfoBlock() : nil;
+    if (extraUserInfo) {
+        userInfo = userInfo.mutableCopy;
+        [(NSMutableDictionary *)userInfo addEntriesFromDictionary:extraUserInfo];
+    };
+    
+    NSData *userInfoJSON = [NSJSONSerialization dataWithJSONObject:userInfo options:NSJSONWritingPrettyPrinted error:NULL];
     
     MFMailComposeViewController *mf = [MFMailComposeViewController canSendMail] ? [[MFMailComposeViewController alloc] init] : nil;
     if (! mf) {
@@ -295,7 +312,7 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
     }
     
     mf.toRecipients = @[ BugshotKit.sharedManager.destinationEmailAddress ];
-    mf.subject = [NSString stringWithFormat:@"%@ %@ Feedback", [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"], [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]];
+    mf.subject = [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
 
     if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(screenshot) mimeType:@"image/png" fileName:@"screenshot.png"];
     if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];

@@ -27,12 +27,6 @@
 		A9A84759188D8696009C5B78 /* BSKToggleButton.m in Sources */ = {isa = PBXBuildFile; fileRef = A9A8474C188D8696009C5B78 /* BSKToggleButton.m */; };
 		A9A8475A188D8696009C5B78 /* BugshotKit.m in Sources */ = {isa = PBXBuildFile; fileRef = A9A8474E188D8696009C5B78 /* BugshotKit.m */; };
 		A9A8475B188D8696009C5B78 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = A9A84750188D8696009C5B78 /* UIImage+ImageEffects.m */; };
-		A9A84763188D884C009C5B78 /* ArrowIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = A9A8475C188D884C009C5B78 /* ArrowIcon.png */; };
-		A9A84764188D884C009C5B78 /* ArrowIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = A9A8475D188D884C009C5B78 /* ArrowIcon@2x.png */; };
-		A9A84765188D884C009C5B78 /* BlurIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = A9A8475E188D884C009C5B78 /* BlurIcon.png */; };
-		A9A84766188D884C009C5B78 /* BlurIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = A9A8475F188D884C009C5B78 /* BlurIcon@2x.png */; };
-		A9A84767188D884C009C5B78 /* BoxIcon.png in Resources */ = {isa = PBXBuildFile; fileRef = A9A84760188D884C009C5B78 /* BoxIcon.png */; };
-		A9A84768188D884C009C5B78 /* BoxIcon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = A9A84761188D884C009C5B78 /* BoxIcon@2x.png */; };
 		A9A84769188D884C009C5B78 /* Inconsolata.otf in Resources */ = {isa = PBXBuildFile; fileRef = A9A84762188D884C009C5B78 /* Inconsolata.otf */; };
 		A9A8476C188D924F009C5B78 /* BSKNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = A9A8476B188D924F009C5B78 /* BSKNavigationController.m */; };
 		A9A8476E188DD8EE009C5B78 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = A9A8476D188DD8EE009C5B78 /* Default-568h@2x.png */; };
@@ -75,12 +69,6 @@
 		A9A8474E188D8696009C5B78 /* BugshotKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BugshotKit.m; sourceTree = "<group>"; };
 		A9A8474F188D8696009C5B78 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
 		A9A84750188D8696009C5B78 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
-		A9A8475C188D884C009C5B78 /* ArrowIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ArrowIcon.png; path = ../../Resources/ArrowIcon.png; sourceTree = "<group>"; };
-		A9A8475D188D884C009C5B78 /* ArrowIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "ArrowIcon@2x.png"; path = "../../Resources/ArrowIcon@2x.png"; sourceTree = "<group>"; };
-		A9A8475E188D884C009C5B78 /* BlurIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = BlurIcon.png; path = ../../Resources/BlurIcon.png; sourceTree = "<group>"; };
-		A9A8475F188D884C009C5B78 /* BlurIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "BlurIcon@2x.png"; path = "../../Resources/BlurIcon@2x.png"; sourceTree = "<group>"; };
-		A9A84760188D884C009C5B78 /* BoxIcon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = BoxIcon.png; path = ../../Resources/BoxIcon.png; sourceTree = "<group>"; };
-		A9A84761188D884C009C5B78 /* BoxIcon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "BoxIcon@2x.png"; path = "../../Resources/BoxIcon@2x.png"; sourceTree = "<group>"; };
 		A9A84762188D884C009C5B78 /* Inconsolata.otf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Inconsolata.otf; path = ../../Resources/Inconsolata.otf; sourceTree = "<group>"; };
 		A9A8476A188D924F009C5B78 /* BSKNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKNavigationController.h; sourceTree = "<group>"; };
 		A9A8476B188D924F009C5B78 /* BSKNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKNavigationController.m; sourceTree = "<group>"; };
@@ -147,12 +135,6 @@
 			isa = PBXGroup;
 			children = (
 				A9A8476D188DD8EE009C5B78 /* Default-568h@2x.png */,
-				A9A8475C188D884C009C5B78 /* ArrowIcon.png */,
-				A9A8475D188D884C009C5B78 /* ArrowIcon@2x.png */,
-				A9A8475E188D884C009C5B78 /* BlurIcon.png */,
-				A9A8475F188D884C009C5B78 /* BlurIcon@2x.png */,
-				A9A84760188D884C009C5B78 /* BoxIcon.png */,
-				A9A84761188D884C009C5B78 /* BoxIcon@2x.png */,
 				A9A84762188D884C009C5B78 /* Inconsolata.otf */,
 				A9A8470A188D854C009C5B78 /* TestBugshotKit-Info.plist */,
 				A9A8470B188D854C009C5B78 /* InfoPlist.strings */,
@@ -246,17 +228,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A9A84767188D884C009C5B78 /* BoxIcon.png in Resources */,
 				A9A8476E188DD8EE009C5B78 /* Default-568h@2x.png in Resources */,
-				A9A84768188D884C009C5B78 /* BoxIcon@2x.png in Resources */,
-				A9A84763188D884C009C5B78 /* ArrowIcon.png in Resources */,
 				A9A84769188D884C009C5B78 /* Inconsolata.otf in Resources */,
-				A9A84764188D884C009C5B78 /* ArrowIcon@2x.png in Resources */,
 				A9A84719188D854C009C5B78 /* Main_iPad.storyboard in Resources */,
-				A9A84766188D884C009C5B78 /* BlurIcon@2x.png in Resources */,
 				A9A84716188D854C009C5B78 /* Main_iPhone.storyboard in Resources */,
 				A9A8470D188D854C009C5B78 /* InfoPlist.strings in Resources */,
-				A9A84765188D884C009C5B78 /* BlurIcon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

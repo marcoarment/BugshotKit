@@ -5,16 +5,6 @@
 #import "BSKToggleButton.h"
 #import "BugshotKit.h"
 
-static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
-{
-    UIGraphicsBeginImageContextWithOptions(size, NO, [UIScreen mainScreen].scale);
-    drawingCommands();
-    UIImage *finalImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return finalImage;
-}
-
-
 @interface BSKToggleButton () {
     BOOL on;
 }

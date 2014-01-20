@@ -12,6 +12,16 @@
 
 NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 
+UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
+{
+    UIGraphicsBeginImageContextWithOptions(size, NO, [UIScreen mainScreen].scale);
+    drawingCommands();
+    UIImage *finalImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return finalImage;
+}
+
+
 @interface BSKLogMessage : NSObject
 @property (nonatomic) NSTimeInterval timestamp;
 @property (nonatomic, copy) NSString *message;

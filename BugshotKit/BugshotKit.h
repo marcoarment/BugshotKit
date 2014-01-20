@@ -11,6 +11,7 @@
 
 extern NSString * const BSKNewLogMessageNotification;
 
+
 typedef enum : NSUInteger {
     BSKInvocationGestureNone        = 0,
     BSKInvocationGestureSwipeUp     = 1,
@@ -55,3 +56,5 @@ typedef enum : NSUInteger {
 @property (nonatomic) UIImage *annotatedImage;
 
 @end
+
+UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)());

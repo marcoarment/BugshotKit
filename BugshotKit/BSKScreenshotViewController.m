@@ -38,11 +38,49 @@
     if ( (self = [super init]) ) {
         self.screenshotImage = image;
         self.annotationsToImport = annotations;
-        
         annotationInProgress = nil;
-        UIImage *arrowIcon = [UIImage imageNamed:@"ArrowIcon"];
-        UIImage *boxIcon =   [UIImage imageNamed:@"BoxIcon"];
-        UIImage *blurIcon =  [UIImage imageNamed:@"BlurIcon"];
+        
+        CGSize arrowIconSize = CGSizeMake(19, 19);
+        UIImage *arrowIcon = imageWithDrawing(arrowIconSize, ^{
+            [UIColor.blackColor setStroke];
+            CGRect arrowRect = CGRectMake(0, 0, arrowIconSize.width, arrowIconSize.height);
+            arrowRect = CGRectInset(arrowRect, 1.5f, 1.5f);
+            
+            UIBezierPath *path = [UIBezierPath bezierPath];
+            [path moveToPoint:CGPointMake(arrowRect.origin.x, arrowRect.origin.y + arrowRect.size.height / 2.0f)];
+            [path addLineToPoint:CGPointMake(arrowRect.origin.x + arrowRect.size.width, arrowRect.origin.y + arrowRect.size.height / 2.0f)];
+            [path moveToPoint:CGPointMake(arrowRect.origin.x + 0.75f * arrowRect.size.width, arrowRect.origin.y + 0.25f * arrowRect.size.height)];
+            [path addLineToPoint:CGPointMake(arrowRect.origin.x + arrowRect.size.width, arrowRect.origin.y + arrowRect.size.height / 2.0f)];
+            [path addLineToPoint:CGPointMake(arrowRect.origin.x + 0.75f * arrowRect.size.width, arrowRect.origin.y + 0.75f * arrowRect.size.height)];
+            [path stroke];
+        });
+        
+        CGSize boxIconSize = CGSizeMake(19, 19);
+        UIImage *boxIcon = imageWithDrawing(boxIconSize, ^{
+            [UIColor.blackColor setStroke];
+
+            CGRect boxRect = CGRectMake(0, 0, boxIconSize.width, boxIconSize.height);
+            boxRect = CGRectInset(boxRect, 2.5f, 2.5f);
+            [[UIBezierPath bezierPathWithRoundedRect:boxRect cornerRadius:4.0f] stroke];
+        });
+        
+        CGSize blurIconSize = CGSizeMake(20, 20);
+        UIImage *blurIcon = imageWithDrawing(blurIconSize, ^{
+            [UIColor.blackColor setStroke];
+            [UIColor.blackColor setFill];
+
+            CGRect blurRect = CGRectMake(0, 0, blurIconSize.width, blurIconSize.height);
+            blurRect = CGRectInset(blurRect, 2.5f, 2.5f);
+            
+            [[UIBezierPath bezierPathWithRect:blurRect] stroke];
+            
+            CGRect quarterRect = CGRectMake(blurRect.origin.x, blurRect.origin.y, blurRect.size.width / 2.0f, blurRect.size.height / 2.0f);
+            [[UIBezierPath bezierPathWithRect:quarterRect] fill];
+            quarterRect.origin.x += blurRect.size.width / 2.0f;
+            quarterRect.origin.y += blurRect.size.width / 2.0f;
+            [[UIBezierPath bezierPathWithRect:quarterRect] fill];
+        });
+        
         arrowIcon.accessibilityLabel = @"Arrow";
         boxIcon.accessibilityLabel   = @"Box";
         boxIcon.accessibilityLabel   = @"Blur";
@@ -54,9 +92,9 @@
         annotationToolChosen = kAnnotationToolArrow;
         annotationPicker.selectedSegmentIndex = annotationToolChosen;
         
-        [annotationPicker setWidth:55.0f forSegmentAtIndex:kAnnotationToolArrow];
-        [annotationPicker setWidth:55.0f forSegmentAtIndex:kAnnotationToolBox];
-        [annotationPicker setWidth:55.0f forSegmentAtIndex:kAnnotationToolBlur];
+        [annotationPicker setWidth:65.0f forSegmentAtIndex:kAnnotationToolArrow];
+        [annotationPicker setWidth:65.0f forSegmentAtIndex:kAnnotationToolBox];
+        [annotationPicker setWidth:65.0f forSegmentAtIndex:kAnnotationToolBlur];
         
         [self annotationPickerPicked:annotationPicker];
         [annotationPicker addTarget:self action:@selector(annotationPickerPicked:) forControlEvents:UIControlEventValueChanged];
