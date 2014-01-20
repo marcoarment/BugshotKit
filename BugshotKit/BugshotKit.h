@@ -11,14 +11,14 @@
 
 extern NSString * const BSKNewLogMessageNotification;
 
-typedef NS_ENUM(NSInteger, BSKInvocationGesture) {
+typedef enum : NSUInteger {
     BSKInvocationGestureNone        = 0,
     BSKInvocationGestureSwipeUp     = 1,
     BSKInvocationGestureSwipeDown   = (1 << 1),
     BSKInvocationGestureSwipeFromRightEdge = (1 << 2), // For whatever reason, this gesture recognizer always only needs one touch, regardless of your numberOfTouches setting.
     BSKInvocationGestureDoubleTap = (1 << 3),
     BSKInvocationGestureTripleTap = (1 << 4),
-};
+} BSKInvocationGestureMask;
 
 @interface BugshotKit : NSObject <UIGestureRecognizerDelegate, BSKMainViewControllerDelegate>
 
@@ -28,7 +28,7 @@ typedef NS_ENUM(NSInteger, BSKInvocationGesture) {
 
     If a non-empty dictionary is returned, its contents are serialized into a JSON attachment named "info.json".
 */
-+ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGesture)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress extraInfoBlock:(NSDictionary *(^)())extraInfoBlock;
++ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress extraInfoBlock:(NSDictionary *(^)())extraInfoBlock;
 
 /* You can also always show it manually */
 + (void)show;

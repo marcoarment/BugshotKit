@@ -3,7 +3,8 @@
 //  Created by Marco Arment on 1/15/14.
 
 #import "BugshotKit.h"
-#include "TargetConditionals.h"
+#import "TargetConditionals.h"
+#import "BSKNavigationController.h"
 #import <asl.h>
 @import CoreText;
 
@@ -21,11 +22,11 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 
 
 @interface BugshotKit () {
-    BOOL isShowing;
-    BOOL consoleMessagesNeedSorting;
     dispatch_source_t source;
     int sourceCalls;
+    BSKInvocationGestureMask invocationGestures;
 }
+@property (nonatomic) BOOL isShowing;
 @property (nonatomic) BOOL isDisabled;
 @property (nonatomic, weak) UIWindow *window;
 
@@ -33,6 +34,9 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 @property (nonatomic) NSMutableArray *consoleMessages;
 
 @property (nonatomic) dispatch_queue_t logQueue;
+@property (nonatomic) NSTimeInterval lastConsoleUpdate;
+@property (nonatomic) BOOL consoleHasNewData;
+@property (nonatomic) NSTimer *consoleThrottleTimer;
 @end
 
 @implementation BugshotKit
@@ -47,7 +51,7 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
     return sharedManager;
 }
 
-+ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGesture)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress extraInfoBlock:(NSDictionary *(^)())extraInfoBlock;
++ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress extraInfoBlock:(NSDictionary *(^)())extraInfoBlock;
 {
     [BugshotKit.sharedManager attachWithumberOfTouches:fingerCount invocationGestures:invocationGestures];
     BugshotKit.sharedManager.destinationEmailAddress = toEmailAddress;
@@ -67,19 +71,23 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
         consoleFontName = nil;
 
         NSData *inData = [NSData dataWithContentsOfFile:[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Inconsolata.otf"]];
-        CFErrorRef error;
-        CGDataProviderRef provider = CGDataProviderCreateWithCFData((CFDataRef)inData);
-        CGFontRef font = CGFontCreateWithDataProvider(provider);
-        if (CTFontManagerRegisterGraphicsFont(font, &error)) {
-            if ([UIFont fontWithName:@"Inconsolata" size:size]) consoleFontName = @"Inconsolata";
-            else NSLog(@"[BugshotKit] failed to instantiate console font");
+        if (inData) {
+            CFErrorRef error;
+            CGDataProviderRef provider = CGDataProviderCreateWithCFData((CFDataRef)inData);
+            CGFontRef font = CGFontCreateWithDataProvider(provider);
+            if (CTFontManagerRegisterGraphicsFont(font, &error)) {
+                if ([UIFont fontWithName:@"Inconsolata" size:size]) consoleFontName = @"Inconsolata";
+                else NSLog(@"[BugshotKit] failed to instantiate console font");
+            } else {
+                CFStringRef errorDescription = CFErrorCopyDescription(error);
+                NSLog(@"[BugshotKit] failed to load console font: %@", errorDescription);
+                CFRelease(errorDescription);
+            }
+            CFRelease(font);
+            CFRelease(provider);
         } else {
-            CFStringRef errorDescription = CFErrorCopyDescription(error);
-            NSLog(@"[BugshotKit] failed to load console font: %@", errorDescription);
-            CFRelease(errorDescription);
+            NSLog(@"[BugshotKit] Console font not found. Please add Inconsolata.otf to your Resources.");        
         }
-        CFRelease(font);
-        CFRelease(provider);
 
         if (! consoleFontName) consoleFontName = @"CourierNewPSMT";
     });
@@ -90,15 +98,13 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 - (instancetype)init
 {
     if ( (self = [super init]) ) {
-
-#if ! (TARGET_IPHONE_SIMULATOR)
         if ([self.class isProbablyAppStoreBuild]) {
             self.isDisabled = YES;
             NSLog(@"[BugshotKit] App Store build detected. BugshotKit is disabled.");
             return self;
         }
-#endif
-
+        
+        self.lastConsoleUpdate = 0;
         self.annotationFillColor = [UIColor colorWithRed:1.0f green:0.2196f blue:0.03922f alpha:1.0f]; // Bugshot red-orange
         self.annotationStrokeColor = [UIColor whiteColor];
         
@@ -112,16 +118,26 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
         self.consoleLogMaxLines = 500;
         
         // Notify on every write to stderr (so we can track NSLog real-time, without polling, when a console is showing)
-        source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, fileno(stderr), DISPATCH_VNODE_WRITE, dispatch_get_main_queue());
+        source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, fileno(stderr), DISPATCH_VNODE_WRITE, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
         __weak BugshotKit *weakSelf = self;
         dispatch_source_set_event_handler(source, ^{
-            if (weakSelf.isShowing) {
-                dispatch_async(dispatch_get_main_queue(),^{
+            if (! weakSelf.isShowing) return;
+
+            NSTimeInterval now = [NSDate date].timeIntervalSince1970;
+            if (now - weakSelf.lastConsoleUpdate < 0.5) {
+                weakSelf.consoleHasNewData = YES;
+            } else {
+                weakSelf.lastConsoleUpdate = now;
+                dispatch_async(self.logQueue,^{
                     [weakSelf updateFromASL];
+                    weakSelf.consoleHasNewData = NO;
                 });
             }
         });
-        dispatch_resume(source);
+
+        dispatch_async(self.logQueue, ^{
+            [self updateFromASL];
+        });
     }
     return self;
 }
@@ -133,11 +149,23 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
     }
 }
 
-- (BOOL)isShowing { return isShowing; }
+- (void)consoleThrottleTimerFired:(NSTimer *)t
+{
+    if (! self.consoleHasNewData) return;
 
-- (void)attachWithumberOfTouches:(NSUInteger)fingerCount invocationGestures:(BSKInvocationGesture)invocationGestures
+    NSTimeInterval now = [NSDate date].timeIntervalSince1970;
+    self.lastConsoleUpdate = now;
+    
+    dispatch_async(self.logQueue, ^{
+        [self updateFromASL];
+        self.consoleHasNewData = NO;
+    });
+}
+
+- (void)attachWithumberOfTouches:(NSUInteger)fingerCount invocationGestures:(BSKInvocationGestureMask)gestures
 {
     if (self.isDisabled) return;
+    invocationGestures = gestures;
     
     // dispatched to next main-thread loop so the app delegate has a chance to set up its window
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -146,31 +174,72 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
         if (! self.window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
         if (! self.window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
 
-        if (invocationGestures & BSKInvocationGestureSwipeUp) {
+        if (invocationGestures & (BSKInvocationGestureSwipeUp | BSKInvocationGestureSwipeDown)) {
+            // Need to actually handle all four directions to work with rotation, since we're attaching right to the window (which doesn't autorotate).
+            // Making four different GRs, rather than one with all four directions set, so it's possible to distinguish which direction was swiped in the action method.
+            //
+            // (dealing with rotation is awesome)
+            
             UISwipeGestureRecognizer *sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
             sgr.numberOfTouchesRequired = fingerCount;
             sgr.direction = UISwipeGestureRecognizerDirectionUp;
             sgr.delegate = self;
             [self.window addGestureRecognizer:sgr];
-            NSLog(@"[BugshotKit] Enabled for %d-finger swipe up.", (int) fingerCount);
-        }
 
-        if (invocationGestures & BSKInvocationGestureSwipeDown) {
-            UISwipeGestureRecognizer *sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+            sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
             sgr.numberOfTouchesRequired = fingerCount;
             sgr.direction = UISwipeGestureRecognizerDirectionDown;
             sgr.delegate = self;
             [self.window addGestureRecognizer:sgr];
-            NSLog(@"[BugshotKit] Enabled for %d-finger swipe down.", (int) fingerCount);
+
+            sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+            sgr.numberOfTouchesRequired = fingerCount;
+            sgr.direction = UISwipeGestureRecognizerDirectionLeft;
+            sgr.delegate = self;
+            [self.window addGestureRecognizer:sgr];
+
+            sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+            sgr.numberOfTouchesRequired = fingerCount;
+            sgr.direction = UISwipeGestureRecognizerDirectionRight;
+            sgr.delegate = self;
+            [self.window addGestureRecognizer:sgr];
+
+            if (invocationGestures & BSKInvocationGestureSwipeUp) NSLog(@"[BugshotKit] Enabled for %d-finger swipe up.", (int) fingerCount);
+            if (invocationGestures & BSKInvocationGestureSwipeDown) NSLog(@"[BugshotKit] Enabled for %d-finger swipe down.", (int) fingerCount);
         }
 
         if (invocationGestures & BSKInvocationGestureSwipeFromRightEdge) {
-            UIScreenEdgePanGestureRecognizer *egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+            // Similar deal with these (see swipe recognizers above), but screen-edge gesture recognizers always return 0 upon reading the .edges property.
+            // I guess it's write-only. So we actually need four different action methods to know which one was invoked.
+            
+            UIScreenEdgePanGestureRecognizer *egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(topEdgePanGesture:)];
+            egr.edges = UIRectEdgeTop;
+            egr.minimumNumberOfTouches = fingerCount;
+            egr.maximumNumberOfTouches = fingerCount;
+            egr.delegate = self;
+            [self.window addGestureRecognizer:egr];
+
+            egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(bottomEdgePanGesture:)];
+            egr.edges = UIRectEdgeBottom;
+            egr.minimumNumberOfTouches = fingerCount;
+            egr.maximumNumberOfTouches = fingerCount;
+            egr.delegate = self;
+            [self.window addGestureRecognizer:egr];
+
+            egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(leftEdgePanGesture:)];
+            egr.edges = UIRectEdgeLeft;
+            egr.minimumNumberOfTouches = fingerCount;
+            egr.maximumNumberOfTouches = fingerCount;
+            egr.delegate = self;
+            [self.window addGestureRecognizer:egr];
+
+            egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(rightEdgePanGesture:)];
             egr.edges = UIRectEdgeRight;
             egr.minimumNumberOfTouches = fingerCount;
             egr.maximumNumberOfTouches = fingerCount;
             egr.delegate = self;
             [self.window addGestureRecognizer:egr];
+
             NSLog(@"[BugshotKit] Enabled for swipe from right edge.");
         }
 
@@ -196,32 +265,93 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer { return YES; }
 
+- (void)leftEdgePanGesture:(UIScreenEdgePanGestureRecognizer *)egr
+{
+    if ([egr translationInView:self.window].x < 60) return;
+    if (self.window.rootViewController.interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown) [self handleOpenGesture:egr];
+}
+
+- (void)rightEdgePanGesture:(UIScreenEdgePanGestureRecognizer *)egr
+{
+    if ([egr translationInView:self.window].x > -60) return;
+    if (self.window.rootViewController.interfaceOrientation == UIInterfaceOrientationPortrait) [self handleOpenGesture:egr];
+}
+
+- (void)topEdgePanGesture:(UIScreenEdgePanGestureRecognizer *)egr
+{
+    if ([egr translationInView:self.window].y < 60) return;
+    if (self.window.rootViewController.interfaceOrientation == UIInterfaceOrientationLandscapeLeft) [self handleOpenGesture:egr];
+}
+
+- (void)bottomEdgePanGesture:(UIScreenEdgePanGestureRecognizer *)egr
+{
+    if ([egr translationInView:self.window].y > -60) return;
+    if (self.window.rootViewController.interfaceOrientation == UIInterfaceOrientationLandscapeRight) [self handleOpenGesture:egr];
+}
+
 - (void)handleOpenGesture:(UIGestureRecognizer *)sender
 {
-    if (isShowing) return;
-    if (sender && [sender isKindOfClass:UIPanGestureRecognizer.class] && [((UIPanGestureRecognizer *)sender) translationInView:self.window].x > -60) return;
+    if (self.isShowing) return;
 
-    isShowing = YES;
+    UIInterfaceOrientation interfaceOrientation = self.window.rootViewController.interfaceOrientation;
+    
+    if (sender && [sender isKindOfClass:UISwipeGestureRecognizer.class]) {
+        UISwipeGestureRecognizer *sgr = (UISwipeGestureRecognizer *)sender;
+        
+        BOOL validSwipe = NO;
+        if (invocationGestures & BSKInvocationGestureSwipeUp) {
+            if      (interfaceOrientation == UIInterfaceOrientationPortrait && sgr.direction == UISwipeGestureRecognizerDirectionUp) validSwipe = YES;
+            else if (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown && sgr.direction == UISwipeGestureRecognizerDirectionDown) validSwipe = YES;
+            else if (interfaceOrientation == UIInterfaceOrientationLandscapeLeft && sgr.direction == UISwipeGestureRecognizerDirectionLeft) validSwipe = YES;
+            else if (interfaceOrientation == UIInterfaceOrientationLandscapeRight && sgr.direction == UISwipeGestureRecognizerDirectionRight) validSwipe = YES;
+        }
+        
+        if (! validSwipe && (invocationGestures & BSKInvocationGestureSwipeDown)) {
+            if      (interfaceOrientation == UIInterfaceOrientationPortrait && sgr.direction == UISwipeGestureRecognizerDirectionDown) validSwipe = YES;
+            else if (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown && sgr.direction == UISwipeGestureRecognizerDirectionUp) validSwipe = YES;
+            else if (interfaceOrientation == UIInterfaceOrientationLandscapeLeft && sgr.direction == UISwipeGestureRecognizerDirectionRight) validSwipe = YES;
+            else if (interfaceOrientation == UIInterfaceOrientationLandscapeRight && sgr.direction == UISwipeGestureRecognizerDirectionLeft) validSwipe = YES;
+        }
+        
+        if (! validSwipe) return;
+    }
+
+    self.isShowing = YES;
+    self.consoleThrottleTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(consoleThrottleTimerFired:) userInfo:nil repeats:YES];
+    dispatch_resume(source);
 
     UIGraphicsBeginImageContextWithOptions(self.window.bounds.size, YES, UIScreen.mainScreen.scale);
     [self.window drawViewHierarchyInRect:self.window.bounds afterScreenUpdates:NO];
     self.snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
+
+    if (interfaceOrientation != UIInterfaceOrientationPortrait) {
+        self.snapshotImage = [[UIImage alloc] initWithCGImage:self.snapshotImage.CGImage scale:UIScreen.mainScreen.scale orientation:(
+            interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ? UIImageOrientationDown : (
+                interfaceOrientation == UIInterfaceOrientationLandscapeLeft ? UIImageOrientationRight : UIImageOrientationLeft
+            )
+        )];
+    }
+
+    UIViewController *presentingViewController = self.window.rootViewController;
+    while (presentingViewController.presentedViewController) presentingViewController = presentingViewController.presentedViewController;
     
     BSKMainViewController *mvc = [[BSKMainViewController alloc] init];
     mvc.delegate = self;
-    UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:mvc];
+    BSKNavigationController *nc = [[BSKNavigationController alloc] initWithRootViewController:mvc lockedToRotation:self.window.rootViewController.interfaceOrientation];
     nc.navigationBar.tintColor = BugshotKit.sharedManager.annotationFillColor;
     
-    UIViewController *presentingViewController = self.window.rootViewController;
-    while (presentingViewController.presentedViewController) presentingViewController = presentingViewController.presentedViewController;
     
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
 }
 
 - (void)mainViewControllerDidClose:(BSKMainViewController *)mainViewController
 {
-    isShowing = NO;
+    if (self.isShowing) {
+        [self.consoleThrottleTimer invalidate];
+        self.consoleThrottleTimer = nil;
+        self.isShowing = NO;
+        dispatch_suspend(source);
+    }
     self.snapshotImage = nil;
     self.annotatedImage = nil;
     self.annotations = nil;
@@ -235,14 +365,6 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 
     dispatch_sync(self.logQueue, ^{
         [self updateFromASL];
-
-        if (consoleMessagesNeedSorting) {
-            [self.consoleMessages sortUsingComparator:^NSComparisonResult(BSKLogMessage *m1, BSKLogMessage *m2) {
-                if (m1.timestamp == m2.timestamp) return NSOrderedSame;
-                return m1.timestamp < m2.timestamp ? NSOrderedAscending : NSOrderedDescending;
-            }];
-            consoleMessagesNeedSorting = NO;
-        }
         
         char fdate[24];
         for (BSKLogMessage *msg in self.consoleMessages) {
@@ -276,7 +398,7 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
     if (manager.isDisabled) return;
     
     dispatch_async(manager.logQueue, ^{
-        [manager addLogMessage:message timestamp:[NSDate date].timeIntervalSince1970 fromASL:NO];
+        [manager addLogMessage:message timestamp:[NSDate date].timeIntervalSince1970];
         dispatch_async(dispatch_get_main_queue(), ^{
             [NSNotificationCenter.defaultCenter postNotificationName:BSKNewLogMessageNotification object:nil];
         });
@@ -284,7 +406,7 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 }
 
 // assumed to always be in logQueue
-- (void)addLogMessage:(NSString *)message timestamp:(NSTimeInterval)timestamp fromASL:(BOOL)fromASL
+- (void)addLogMessage:(NSString *)message timestamp:(NSTimeInterval)timestamp
 {
     BSKLogMessage *msg = [BSKLogMessage new];
     msg.message = message;
@@ -295,8 +417,6 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
     if (self.consoleMessages.count > self.consoleLogMaxLines * 1.25) {
         [self.consoleMessages removeObjectsInRange:NSMakeRange(0, self.consoleMessages.count - self.consoleLogMaxLines)];
     }
-    
-    if (! fromASL) consoleMessagesNeedSorting = YES;
 }
 
 // assumed to always be in logQueue
@@ -321,7 +441,7 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
         foundNewEntries = YES;
         
         NSTimeInterval msgTime = (NSTimeInterval) atol(asl_get(m, ASL_KEY_TIME)) + ((NSTimeInterval) atol(asl_get(m, ASL_KEY_TIME_NSEC)) / 1000000000.0);
-        [self addLogMessage:[NSString stringWithUTF8String:asl_get(m, ASL_KEY_MSG)] timestamp:msgTime fromASL:YES];
+        [self addLogMessage:[NSString stringWithUTF8String:asl_get(m, ASL_KEY_MSG)] timestamp:msgTime];
     }
     
     aslresponse_free(r);
@@ -338,6 +458,10 @@ NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 
 + (BOOL)isProbablyAppStoreBuild
 {
+#if TARGET_IPHONE_SIMULATOR
+    return NO;
+#endif
+
     // Adapted from https://github.com/blindsightcorp/BSMobileProvision
     
     NSString *binaryMobileProvision = [NSString stringWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"embedded" ofType:@"mobileprovision"] encoding:NSISOLatin1StringEncoding error:NULL];

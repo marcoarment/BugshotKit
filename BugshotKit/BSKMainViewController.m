@@ -31,11 +31,17 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
 
 @implementation BSKMainViewController
 
+- (BOOL)shouldAutorotate { return NO; }
+
 - (instancetype)init
 {
     if ( (self = [super initWithStyle:UITableViewStyleGrouped]) ) {
         [BugshotKit.sharedManager addObserver:self forKeyPath:@"annotatedImage" options:0 context:NULL];
         [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(updateLiveLog:) name:BSKNewLogMessageNotification object:nil];
+
+        self.title = @"Bugshot";
+        self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelButtonTapped:)];
+        self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
     }
     return self;
 }
@@ -49,9 +55,6 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
-    self.title = @"New Bug Report";
-    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelButtonTapped:)];
 
     CGSize chevronSize = CGSizeMake(15, 30);
     UIImage *chevronImage = imageWithDrawing(chevronSize, ^{
@@ -69,7 +72,11 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
 
     UIImage *screenshotImage = (BugshotKit.sharedManager.annotatedImage ?: BugshotKit.sharedManager.snapshotImage);
 
-    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 300)];
+    CGFloat maxHeaderHeight =
+        UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) ? 570 : 480) :
+        UIInterfaceOrientationIsPortrait(self.interfaceOrientation) ? (UIScreen.mainScreen.bounds.size.height < 568 ? 300 : 340) : 220
+    ;
+    UIView *headerView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, maxHeaderHeight)];
     
     UIView *screenshotContainer = [UIView new];
     screenshotContainer.translatesAutoresizingMaskIntoConstraints = NO;
@@ -80,7 +87,7 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
     self.screenshotLabel = [UILabel new];
     self.screenshotLabel.text = @"SCREENSHOT";
     self.screenshotLabel.font = [UIFont preferredFontForTextStyle:UIFontTextStyleCaption2];
-    self.screenshotLabel.textColor = BugshotKit.sharedManager.toggleOnColor;
+    self.screenshotLabel.textColor = BugshotKit.sharedManager.annotationFillColor;
     self.screenshotLabel.textAlignment = NSTextAlignmentCenter;
     self.screenshotLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [screenshotContainer addSubview:self.screenshotLabel];
@@ -93,13 +100,17 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
     self.consoleLabel.translatesAutoresizingMaskIntoConstraints = NO;
     [consoleContainer addSubview:self.consoleLabel];
     
-    self.includeScreenshotToggle = [[BSKToggleButton alloc] initWithFrame:CGRectMake(0, 0, 74, 74)];
+    CGFloat toggleWidth = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone && UIInterfaceOrientationIsLandscape(self.interfaceOrientation) ? 44 : 74;
+    
+    self.includeScreenshotToggle = [[BSKToggleButton alloc] initWithFrame:CGRectMake(0, 0, toggleWidth, toggleWidth)];
+    self.includeScreenshotToggle.on = YES;
     [self.includeScreenshotToggle addTarget:self action:@selector(includeScreenshotToggled:) forControlEvents:UIControlEventValueChanged];
     self.includeScreenshotToggle.translatesAutoresizingMaskIntoConstraints = NO;
     self.includeScreenshotToggle.accessibilityLabel = @"Include screenshot";
     [screenshotContainer addSubview:self.includeScreenshotToggle];
 
-    self.includeLogToggle = [[BSKToggleButton alloc] initWithFrame:CGRectMake(0, 0, 74, 74)];
+    self.includeLogToggle = [[BSKToggleButton alloc] initWithFrame:CGRectMake(0, 0, toggleWidth, toggleWidth)];
+    self.includeLogToggle.on = YES;
     [self.includeLogToggle addTarget:self action:@selector(includeLogToggled:) forControlEvents:UIControlEventValueChanged];
     self.includeLogToggle.translatesAutoresizingMaskIntoConstraints = NO;
     self.includeLogToggle.accessibilityLabel = @"Include log";
@@ -120,6 +131,7 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
     self.consoleView.layer.borderColor = BugshotKit.sharedManager.annotationFillColor.CGColor;
     self.consoleView.layer.borderWidth = 1.0f;
     self.consoleView.accessibilityLabel = @"View log";
+    self.consoleView.backgroundColor = UIColor.whiteColor;
     [consoleContainer addSubview:self.consoleView];
     
     self.screenshotAccessoryView = [[UIImageView alloc] initWithImage:chevronImage];
@@ -145,7 +157,8 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
     void (^layoutScreenshotUnit)(UIView *container, NSDictionary *views) = ^(UIView *container, NSDictionary *views){
         NSDictionary *metrics = @{
             @"aw" : @(chevronSize.width), @"ah" : @(chevronSize.height), @"apad" : @(chevronSize.width + 5.0f),
-            @"lfont" : @( ((UILabel *)views[@"label"]).font.pointSize )
+            @"lfont" : @( ((UILabel *)views[@"label"]).font.pointSize ),
+            @"padImageHeight" : @(384)
         };
     
         [container addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-15-[label(>=lfont)]-5-[image]-15-[toggle]" options:0 metrics:metrics views:views]];
@@ -169,6 +182,11 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
         [container addConstraint:[NSLayoutConstraint
             constraintWithItem:views[@"toggle"] attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:views[@"toggle"] attribute:NSLayoutAttributeWidth multiplier:1 constant:0
         ]];
+
+//        // bigger images on iPad
+//        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+//            [container addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[image(>=padImageHeight)]" options:0 metrics:metrics views:views]];
+//        }
     };
     
     layoutScreenshotUnit(screenshotContainer, @{
@@ -191,17 +209,20 @@ static inline UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
     NSDictionary *views = NSDictionaryOfVariableBindings(screenshotContainer, consoleContainer);
     [headerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[screenshotContainer]|" options:0 metrics:nil views:views]];
     [headerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[consoleContainer]|" options:0 metrics:nil views:views]];
-    [headerView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"|-15-[screenshotContainer]-[consoleContainer]-15-|" options:0 metrics:nil views:views]];
+    
+    [headerView addConstraint:[NSLayoutConstraint
+        constraintWithItem:screenshotContainer attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationLessThanOrEqual toItem:headerView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
+    ]];
+    [headerView addConstraint:[NSLayoutConstraint
+        constraintWithItem:consoleContainer attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationLessThanOrEqual toItem:headerView attribute:NSLayoutAttributeCenterX multiplier:1 constant:0
+    ]];
+
     [headerView addConstraint:[NSLayoutConstraint
         constraintWithItem:screenshotContainer attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:consoleContainer attribute:NSLayoutAttributeWidth multiplier:1 constant:0
     ]];
-    
 
     [headerView sizeToFit];
     self.tableView.tableHeaderView = headerView;
-
-    self.includeScreenshotToggle.on = YES;
-    self.includeLogToggle.on = YES;
 
     dispatch_async(dispatch_get_main_queue(), ^{
         [self updateLiveLog:nil];

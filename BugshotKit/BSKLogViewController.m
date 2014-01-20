@@ -50,7 +50,7 @@ static int markerNumber = 0;
     
     self.textView = [[UITextView alloc] initWithFrame:frame];
     self.textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    self.textView.font = [BugshotKit consoleFontWithSize:9.0f];
+    self.textView.font = [BugshotKit consoleFontWithSize:(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? 13.0f : 9.0f)];
     self.textView.editable = NO;
     [view addSubview:self.textView];
     
