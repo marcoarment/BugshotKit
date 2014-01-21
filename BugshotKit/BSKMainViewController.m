@@ -308,7 +308,7 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
         return;
     }
     
-    mf.toRecipients = @[ BugshotKit.sharedManager.destinationEmailAddress ];
+    mf.toRecipients = [BugshotKit.sharedManager.destinationEmailAddress componentsSeparatedByString:@","];
     mf.subject = BugshotKit.sharedManager.emailSubjectBlock ? BugshotKit.sharedManager.emailSubjectBlock(userInfo) : [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
 
     if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(rotateIfNeeded(screenshot, UIImageOrientationDown)) mimeType:@"image/png" fileName:@"screenshot.png"];
