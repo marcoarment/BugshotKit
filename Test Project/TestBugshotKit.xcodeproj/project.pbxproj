@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A96A9868188EF5A40066A404 /* BSKWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = A96A9865188EF5A40066A404 /* BSKWindow.m */; };
 		A9A84703188D854C009C5B78 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9A84702188D854C009C5B78 /* Foundation.framework */; };
 		A9A84705188D854C009C5B78 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9A84704188D854C009C5B78 /* CoreGraphics.framework */; };
 		A9A84707188D854C009C5B78 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9A84706188D854C009C5B78 /* UIKit.framework */; };
@@ -33,6 +34,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A96A9864188EF5A40066A404 /* BSKWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKWindow.h; sourceTree = "<group>"; };
+		A96A9865188EF5A40066A404 /* BSKWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKWindow.m; sourceTree = "<group>"; };
 		A9A846FF188D854C009C5B78 /* TestBugshotKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestBugshotKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A9A84702188D854C009C5B78 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A9A84704188D854C009C5B78 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -147,6 +150,10 @@
 		A9A8473A188D8696009C5B78 /* BugshotKit */ = {
 			isa = PBXGroup;
 			children = (
+				A9A8474D188D8696009C5B78 /* BugshotKit.h */,
+				A9A8474E188D8696009C5B78 /* BugshotKit.m */,
+				A96A9864188EF5A40066A404 /* BSKWindow.h */,
+				A96A9865188EF5A40066A404 /* BSKWindow.m */,
 				A9A8473B188D8696009C5B78 /* BSKAnnotationArrowView.h */,
 				A9A8473C188D8696009C5B78 /* BSKAnnotationArrowView.m */,
 				A9A8473D188D8696009C5B78 /* BSKAnnotationBlurView.h */,
@@ -165,12 +172,10 @@
 				A9A8474A188D8696009C5B78 /* BSKScreenshotViewController.m */,
 				A9A8474B188D8696009C5B78 /* BSKToggleButton.h */,
 				A9A8474C188D8696009C5B78 /* BSKToggleButton.m */,
-				A9A8474D188D8696009C5B78 /* BugshotKit.h */,
-				A9A8474E188D8696009C5B78 /* BugshotKit.m */,
-				A9A8474F188D8696009C5B78 /* UIImage+ImageEffects.h */,
-				A9A84750188D8696009C5B78 /* UIImage+ImageEffects.m */,
 				A9A8476A188D924F009C5B78 /* BSKNavigationController.h */,
 				A9A8476B188D924F009C5B78 /* BSKNavigationController.m */,
+				A9A8474F188D8696009C5B78 /* UIImage+ImageEffects.h */,
+				A9A84750188D8696009C5B78 /* UIImage+ImageEffects.m */,
 			);
 			name = BugshotKit;
 			path = ../../BugshotKit;
@@ -257,6 +262,7 @@
 				A9A8470F188D854C009C5B78 /* main.m in Sources */,
 				A9A84759188D8696009C5B78 /* BSKToggleButton.m in Sources */,
 				A9A8476C188D924F009C5B78 /* BSKNavigationController.m in Sources */,
+				A96A9868188EF5A40066A404 /* BSKWindow.m in Sources */,
 				A9A84758188D8696009C5B78 /* BSKScreenshotViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

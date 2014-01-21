@@ -7,11 +7,12 @@
 #import "BSKLogViewController.h"
 #import "BSKScreenshotViewController.h"
 #import "BSKToggleButton.h"
-#import "UIImage+RotationFix.h"
 #import <QuartzCore/QuartzCore.h>
 #import <unistd.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
+
+static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
 
 @interface BSKMainViewController ()
 @property (nonatomic) BSKToggleButton *includeScreenshotToggle;
@@ -394,3 +395,36 @@
 }
 
 @end
+
+
+// By Matteo Gavagnin on 21/01/14.
+static inline double radians (double degrees) {return degrees * M_PI/180;}
+static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation)
+{
+    if (src.imageOrientation == UIImageOrientationDown && src.size.width < src.size.height) {
+        UIGraphicsBeginImageContext(src.size);
+        [src drawAtPoint:CGPointMake(0, 0)];
+        return UIGraphicsGetImageFromCurrentImageContext();
+    } else if ((src.imageOrientation == UIImageOrientationLeft || src.imageOrientation == UIImageOrientationRight) && src.size.width > src.size.height) {
+        UIGraphicsBeginImageContext(src.size);
+        
+        CGContextRef context = UIGraphicsGetCurrentContext();
+        
+        if (orientation == UIImageOrientationRight) {
+            CGContextRotateCTM (context, radians(90));
+        } else if (orientation == UIImageOrientationLeft) {
+            CGContextRotateCTM (context, radians(-90));
+        } else if (orientation == UIImageOrientationDown) {
+            // CGContextRotateCTM (context, radians(-90));
+        } else if (orientation == UIImageOrientationUp) {
+            CGContextRotateCTM (context, radians(90));
+        }
+        
+        [src drawAtPoint:CGPointMake(0, 0)];
+        
+        return UIGraphicsGetImageFromCurrentImageContext();
+        
+    } else {
+        return src;
+    }
+}
