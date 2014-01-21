@@ -7,6 +7,7 @@
 #import "BSKLogViewController.h"
 #import "BSKScreenshotViewController.h"
 #import "BSKToggleButton.h"
+#import "UIImage+RotationFix.h"
 #import <QuartzCore/QuartzCore.h>
 #import <unistd.h>
 #include <sys/types.h>
@@ -271,6 +272,8 @@
 - (void)sendButtonTapped:(id)sender
 {
     UIImage *screenshot = self.includeScreenshotToggle.on ? (BugshotKit.sharedManager.annotatedImage ?: BugshotKit.sharedManager.snapshotImage) : nil;
+    
+    
     NSString *log = self.includeLogToggle.on ? [BugshotKit.sharedManager currentConsoleLogWithDateStamps:YES] : nil;
     if (log && ! log.length) log = nil;
     
@@ -305,11 +308,34 @@
         [[[UIAlertView alloc] initWithTitle:@"Cannot Send Mail" message:msg delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
         return;
     }
-    
-    mf.toRecipients = @[ BugshotKit.sharedManager.destinationEmailAddress ];
-    mf.subject = [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
 
-    if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(screenshot) mimeType:@"image/png" fileName:@"screenshot.png"];
+    mf.toRecipients = @[ BugshotKit.sharedManager.destinationEmailAddress ];
+
+    NSMutableString *subject = [NSMutableString new];
+
+    if ([extraUserInfo objectForKey:@"emailPrefix"]) {
+        [subject appendString:[extraUserInfo objectForKey:@"emailPrefix"]];
+    }
+    
+    if (![extraUserInfo objectForKey:@"skipName"]) {
+        [subject appendString:appNameString];
+    }
+
+    if (![extraUserInfo objectForKey:@"skipVersion"]) {
+        [subject appendString:[NSString stringWithFormat:@" %@", appVersionString]];
+    }
+
+    if (![extraUserInfo objectForKey:@"skipFeedback"]) {
+        [subject appendString:@" Feedback"];
+    }
+
+    mf.subject = subject;
+
+    if (screenshot){
+        
+        
+        [mf addAttachmentData:UIImagePNGRepresentation(rotateIfNeeded(screenshot, UIImageOrientationDown)) mimeType:@"image/png" fileName:@"screenshot.png"];
+    }
     if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];
     if (userInfoJSON) [mf addAttachmentData:userInfoJSON mimeType:@"application/json" fileName:@"info.json"];
 
