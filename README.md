@@ -5,7 +5,7 @@ iOS in-app bug reporting for developers and testers, with annotated screenshots 
 
 (tl;dr: Embedded [Bugshot](http://www.marco.org/bugshot) plus `NSLog()` collection for beta testing.)
 
-Just perform a gesture of your choice — two-finger swipe-up, three-finger double-tap, swipe from right screen edge, etc. — from anywhere in the app, and the Bugshot report window slides up:
+Just perform a gesture of your choice — shake, two-finger swipe-up, three-finger double-tap, swipe from right screen edge, etc. — from anywhere in the app, and the Bugshot report window slides up:
 
 ![Screenshot](https://raw.github.com/marcoarment/BugshotKit/master/example-screenshot.png)
 
@@ -34,13 +34,13 @@ Simply invoke `[BugshotKit enableWithNumberOfTouches:...]` from your `applicatio
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    [BugshotKit enableWithNumberOfTouches:1 performingGestures:BSKInvocationGestureSwipeUp feedbackEmailAddress:@"your@app.biz" extraInfoBlock:NULL];
+    [BugshotKit enableWithNumberOfTouches:1 performingGestures:BSKInvocationGestureSwipeUp feedbackEmailAddress:@"your@app.biz"];
 }
 ```
 
 That's it, really. Console tracking begins immediately, and on the next run-loop pass, it'll look for a `UIWindow` with a `rootViewController` and attach its gesture handlers (if any).
 
-Bugshot can also be summoned when the user shakes the device, by using `BSKWindow` in place of `UIWindow` in your application delegate:
+Bugshot can also be shown when the user shakes the device, by using `BSKWindow` in place of `UIWindow` in your application delegate:
 
 ```obj-c
 self.window = [[BSKWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
@@ -63,7 +63,22 @@ BugshotKit's emails include an `info.json` file containing basic info in JSON:
 }
 ```
 
-To add custom keys to this, supply an `extraInfoBlock` to the initial call that returns an `NSDictionary`, and they'll be merged in.
+To add custom keys to this, set a block with `[BugshotKit setExtraInfoBlock:]` that returns an `NSDictionary`, and they'll be merged in.
+
+To customize the email subject, set a block with `[BugshotKit setEmailSubjectBlock:]`. It receives the full dictionary as a parameter, with any keys you added with the extra info block, so you can do something like:
+
+```obj-c
+[BugshotKit setExtraInfoBlock:^NSDictionary *{
+    return @{
+        @"userID" : @(1),
+        @"colorScheme" : @"dark"
+    };
+}];
+
+[BugshotKit setEmailSubjectBlock:^NSString *(NSDictionary *info) {
+    return [NSString stringWithFormat:@"Bug report from version %@, user %@", info[@"appVersion"], info[@"userID"]];
+}];
+```
 
 ## License
 
@@ -79,6 +94,6 @@ Thanks.
 
 ### Inconsolata font
 
-BugshotKit includes [Inconsolata](http://levien.com/type/myfonts/inconsolata.html), a free monospace programming font released under the [SIL Open Font License](http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&item_id=OFL).
+BugshotKit includes [Inconsolata](http://levien.com/type/myfonts/inconsolata.html), a free monospace programming font released under the [SIL Open Font License](http://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&item_id=OFL), to make its console look nicer.
 
-Add it to your application's resources to use it. If it's absent, BugshotKit will fall back to Courier New, but it'll look worse.
+Add it to your application's resources to use it. If it's absent, BugshotKit will fall back to Courier New, but its console will look worse.

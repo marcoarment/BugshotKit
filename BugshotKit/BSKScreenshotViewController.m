@@ -41,7 +41,7 @@
         annotationInProgress = nil;
         
         CGSize arrowIconSize = CGSizeMake(19, 19);
-        UIImage *arrowIcon = imageWithDrawing(arrowIconSize, ^{
+        UIImage *arrowIcon = BSKImageWithDrawing(arrowIconSize, ^{
             [UIColor.blackColor setStroke];
             CGRect arrowRect = CGRectMake(0, 0, arrowIconSize.width, arrowIconSize.height);
             arrowRect = CGRectInset(arrowRect, 1.5f, 1.5f);
@@ -56,7 +56,7 @@
         });
         
         CGSize boxIconSize = CGSizeMake(19, 19);
-        UIImage *boxIcon = imageWithDrawing(boxIconSize, ^{
+        UIImage *boxIcon = BSKImageWithDrawing(boxIconSize, ^{
             [UIColor.blackColor setStroke];
 
             CGRect boxRect = CGRectMake(0, 0, boxIconSize.width, boxIconSize.height);
@@ -65,7 +65,7 @@
         });
         
         CGSize blurIconSize = CGSizeMake(20, 20);
-        UIImage *blurIcon = imageWithDrawing(blurIconSize, ^{
+        UIImage *blurIcon = BSKImageWithDrawing(blurIconSize, ^{
             [UIColor.blackColor setStroke];
             [UIColor.blackColor setFill];
 

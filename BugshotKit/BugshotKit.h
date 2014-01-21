@@ -29,7 +29,8 @@ typedef enum : NSUInteger {
 
     If a non-empty dictionary is returned, its contents are serialized into a JSON attachment named "info.json".
 */
-+ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress extraInfoBlock:(NSDictionary *(^)())extraInfoBlock;
+
++ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress;
 
 /* You can also always show it manually */
 + (void)show;
@@ -38,23 +39,51 @@ typedef enum : NSUInteger {
 - (void)clearLog;
 
 + (void)addLogMessage:(NSString *)message;
-
 + (UIFont *)consoleFontWithSize:(CGFloat)size;
+
+@property (nonatomic, copy) NSString *destinationEmailAddress;
+@property (nonatomic) NSUInteger consoleLogMaxLines;
+
+/*
+    Every email has an info.json attachment with a serialized dictionary containing at least these keys:
+
+    @{
+        @"appName" : @"Your App",
+        @"appVersion" : @"1.0",
+        @"systemVersion" : @"7.0.4",
+        @"deviceModel" : @"iPhone6,1"
+    }
+
+    To add more keys to get merged into this dictionary, return them from a custom extraInfoBlock:
+*/
++ (void)setExtraInfoBlock:(NSDictionary *(^)())extraInfoBlock;
+
+
+/*
+    You can optionally customize the email subject line by setting an emailSubjectBlock.
+
+    info is the app-info dictionary from above (including anything you provided with extraInfoBlock)
+*/
++ (void)setEmailSubjectBlock:(NSString *(^)(NSDictionary *))emailSubjectBlock;
+
+
+// feel free to mess with these if you want
+
+- (NSString *)currentConsoleLogWithDateStamps:(BOOL)dateStamps;
 
 @property (nonatomic) UIColor *annotationFillColor;
 @property (nonatomic) UIColor *annotationStrokeColor;
 @property (nonatomic) UIColor *toggleOnColor;
 @property (nonatomic) UIColor *toggleOffColor;
-@property (nonatomic, copy) NSString *destinationEmailAddress;
-@property (nonatomic, copy) NSDictionary * (^extraInfoBlock)();
 
-@property (nonatomic) NSUInteger consoleLogMaxLines;
-- (NSString *)currentConsoleLogWithDateStamps:(BOOL)dateStamps;
 
+// don't mess with these
 @property (nonatomic) UIImage *snapshotImage;
 @property (nonatomic, copy) NSArray *annotations;
 @property (nonatomic) UIImage *annotatedImage;
+@property (nonatomic, copy) NSDictionary *(^extraInfoBlock)();
+@property (nonatomic, copy) NSString *(^emailSubjectBlock)(NSDictionary *info);
 
 @end
 
-UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)());
+UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)());

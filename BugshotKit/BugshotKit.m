@@ -14,7 +14,7 @@
 
 NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 
-UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
+UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 {
     UIGraphicsBeginImageContextWithOptions(size, NO, [UIScreen mainScreen].scale);
     drawingCommands();
@@ -49,6 +49,7 @@ UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
 @property (nonatomic) NSTimeInterval lastConsoleUpdate;
 @property (nonatomic) BOOL consoleHasNewData;
 @property (nonatomic) NSTimer *consoleThrottleTimer;
+
 @end
 
 @implementation BugshotKit
@@ -63,16 +64,25 @@ UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
     return sharedManager;
 }
 
-+ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress extraInfoBlock:(NSDictionary *(^)())extraInfoBlock;
++ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress
 {
     [BugshotKit.sharedManager attachWithumberOfTouches:fingerCount invocationGestures:invocationGestures];
     BugshotKit.sharedManager.destinationEmailAddress = toEmailAddress;
-    BugshotKit.sharedManager.extraInfoBlock = extraInfoBlock;
 }
 
 + (void)show
 {
     [BugshotKit.sharedManager handleOpenGesture:nil];
+}
+
++ (void)setExtraInfoBlock:(NSDictionary *(^)())extraInfoBlock
+{
+    BugshotKit.sharedManager.extraInfoBlock = extraInfoBlock;
+}
+
++ (void)setEmailSubjectBlock:(NSString *(^)(NSDictionary *))emailSubjectBlock
+{
+    BugshotKit.sharedManager.emailSubjectBlock = emailSubjectBlock;
 }
 
 + (UIFont *)consoleFontWithSize:(CGFloat)size

@@ -51,7 +51,7 @@
     [super viewDidLoad];
 
     CGSize chevronSize = CGSizeMake(15, 30);
-    UIImage *chevronImage = imageWithDrawing(chevronSize, ^{
+    UIImage *chevronImage = BSKImageWithDrawing(chevronSize, ^{
         CGRect chevronBounds = CGRectMake(0, 0, chevronSize.width, chevronSize.height);
         chevronBounds = CGRectInset(chevronBounds, 3.0f, 6.0f);
         
@@ -307,7 +307,7 @@
     }
     
     mf.toRecipients = @[ BugshotKit.sharedManager.destinationEmailAddress ];
-    mf.subject = [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
+    mf.subject = BugshotKit.sharedManager.emailSubjectBlock ? BugshotKit.sharedManager.emailSubjectBlock(userInfo) : [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
 
     if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(screenshot) mimeType:@"image/png" fileName:@"screenshot.png"];
     if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];
@@ -376,7 +376,7 @@
     CGSize size = self.consoleView.bounds.size;
     CGFloat padding = 2.0f;
     CGSize renderSize = CGSizeMake(size.width - padding * 2.0f, size.height - padding * 2.0f);
-    UIImage *textImage = imageWithDrawing(self.consoleView.bounds.size, ^{
+    UIImage *textImage = BSKImageWithDrawing(self.consoleView.bounds.size, ^{
         [UIColor.whiteColor setFill];
         [[UIBezierPath bezierPathWithRect:CGRectMake(0, 0, size.width, size.height)] fill];
         

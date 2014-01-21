@@ -59,11 +59,11 @@
         [checkmarkPath stroke];
     };
     
-    self.onImage = imageWithDrawing(imageRect.size, onImageGenerator);
+    self.onImage = BSKImageWithDrawing(imageRect.size, onImageGenerator);
     mainColor = BugshotKit.sharedManager.toggleOffColor;
-    UIImage *highlightedImage = imageWithDrawing(imageRect.size, onImageGenerator);
+    UIImage *highlightedImage = BSKImageWithDrawing(imageRect.size, onImageGenerator);
     
-    self.offImage = imageWithDrawing(imageRect.size, ^{
+    self.offImage = BSKImageWithDrawing(imageRect.size, ^{
         [mainColor setFill];
         [mainColor setStroke];
 
