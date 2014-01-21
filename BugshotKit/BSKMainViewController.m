@@ -61,7 +61,7 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
         [path moveToPoint:CGPointMake(chevronBounds.origin.x, chevronBounds.origin.y)];
         [path addLineToPoint:CGPointMake(chevronBounds.origin.x + chevronBounds.size.width, chevronBounds.origin.y + (chevronBounds.size.height / 2.0f))];
         [path addLineToPoint:CGPointMake(chevronBounds.origin.x, chevronBounds.origin.y + chevronBounds.size.height)];
-        [path setLineWidth:ceilf(chevronSize.width * 0.2f)];
+        [path setLineWidth:ceilf((float)chevronSize.width * 0.2f)];
         [BugshotKit.sharedManager.toggleOffColor setStroke];
         [path stroke];
     });
@@ -411,13 +411,13 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation)
         CGContextRef context = UIGraphicsGetCurrentContext();
         
         if (orientation == UIImageOrientationRight) {
-            CGContextRotateCTM (context, radians(90));
+            CGContextRotateCTM (context, (float)radians(90));
         } else if (orientation == UIImageOrientationLeft) {
-            CGContextRotateCTM (context, radians(-90));
+            CGContextRotateCTM (context, (float)radians(-90));
         } else if (orientation == UIImageOrientationDown) {
             // CGContextRotateCTM (context, radians(-90));
         } else if (orientation == UIImageOrientationUp) {
-            CGContextRotateCTM (context, radians(90));
+            CGContextRotateCTM (context, (float)radians(90));
         }
         
         [src drawAtPoint:CGPointMake(0, 0)];

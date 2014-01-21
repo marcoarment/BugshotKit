@@ -224,7 +224,7 @@
         UITouch *touch = touches.anyObject;
         CGPoint p1 = [touch locationInView:self.view], p2 = annotationInProgress.startedDrawingAtPoint;
         
-        CGRect bounding = CGRectMake(MIN(p1.x, p2.x), MIN(p1.y, p2.y), fabs(p1.x - p2.x), fabs(p1.y - p2.y));
+        CGRect bounding = CGRectMake(MIN(p1.x, p2.x), MIN(p1.y, p2.y), ABS(p1.x - p2.x), ABS(p1.y - p2.y));
         
         if (bounding.size.height < 40) bounding.size.height = 40;
         if (bounding.size.width < 40) bounding.size.width = 40;
