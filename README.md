@@ -7,7 +7,7 @@ iOS in-app bug reporting for developers and testers, with annotated screenshots 
 
 Just perform a gesture of your choice — two-finger swipe-up, three-finger double-tap, swipe from right screen edge, etc. — from anywhere in the app, and the Bugshot report window slides up:
 
-![https://raw.github.com/marcoarment/BugshotKit/master/example-screenshot.png]
+![Screenshot](https://raw.github.com/marcoarment/BugshotKit/master/example-screenshot.png)
 
 It automatically screenshots whatever you were just seeing in the app, and it includes a live `NSLog()` console log **with no dependencies.** (Also compatible with CocoaLumberjack and anything else capable of outputting to the standard system log, or you can add messages manually.)
 
