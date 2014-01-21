@@ -140,7 +140,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         self.consoleLogMaxLines = 500;
         
         // Notify on every write to stderr (so we can track NSLog real-time, without polling, when a console is showing)
-        source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, fileno(stderr), DISPATCH_VNODE_WRITE, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
+        source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, (uintptr_t)fileno(stderr), DISPATCH_VNODE_WRITE, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
         __weak BugshotKit *weakSelf = self;
         dispatch_source_set_event_handler(source, ^{
             if (! weakSelf.isShowing) return;
