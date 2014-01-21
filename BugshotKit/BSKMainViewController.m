@@ -305,9 +305,28 @@
         [[[UIAlertView alloc] initWithTitle:@"Cannot Send Mail" message:msg delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
         return;
     }
-    
+
     mf.toRecipients = @[ BugshotKit.sharedManager.destinationEmailAddress ];
-    mf.subject = [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
+
+    NSMutableString *subject = [NSMutableString new];
+
+    if ([extraUserInfo objectForKey:@"emailPrefix"]) {
+        [subject appendString:[extraUserInfo objectForKey:@"emailPrefix"]];
+    }
+    
+    if (![extraUserInfo objectForKey:@"skipName"]) {
+        [subject appendString:appNameString];
+    }
+
+    if (![extraUserInfo objectForKey:@"skipVersion"]) {
+        [subject appendString:[NSString stringWithFormat:@" %@", appVersionString]];
+    }
+
+    if (![extraUserInfo objectForKey:@"skipFeedback"]) {
+        [subject appendString:@" Feedback"];
+    }
+
+    mf.subject = subject;
 
     if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(screenshot) mimeType:@"image/png" fileName:@"screenshot.png"];
     if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];
