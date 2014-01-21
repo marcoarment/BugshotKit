@@ -24,12 +24,10 @@ typedef enum : NSUInteger {
 @interface BugshotKit : NSObject <UIGestureRecognizerDelegate, BSKMainViewControllerDelegate>
 
 /*
-    The optional extraInfoBlock() returns an NSDictionary or nil. It's called just before email composition for each report,
-    and can be used to supply any additional info that might improve the report's usefulness (user ID, important object states, etc.).
-
-    If a non-empty dictionary is returned, its contents are serialized into a JSON attachment named "info.json".
+    Call this from your UIApplication didFinishLaunching:... method.
+    
+    Optionally, multiple email addresses can be specified, separated by commas in the string.
 */
-
 + (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress;
 
 /* You can also always show it manually */
