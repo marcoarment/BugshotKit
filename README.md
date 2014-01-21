@@ -40,6 +40,12 @@ Simply invoke `[BugshotKit enableWithNumberOfTouches:...]` from your `applicatio
 
 That's it, really. Console tracking begins immediately, and on the next run-loop pass, it'll look for a `UIWindow` with a `rootViewController` and attach its gesture handlers (if any).
 
+Bugshot can also be summoned when the user shakes the device, by using `BSKWindow` in place of `UIWindow` in your application delegate:
+
+```obj-c
+self.window = [[BSKWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+```
+
 If you don't want to use gesture triggers, you can invoke it manually (from a button, maybe):
 
 ```obj-c
