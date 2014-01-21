@@ -16,7 +16,7 @@
 - (id)initWithFrame:(CGRect)frame checkerSquareWidth:(CGFloat)sw
 {
     if ( (self = [super initWithFrame:frame]) ) {
-        squareWidth = ceilf(sw);
+        squareWidth = ceilf((float)sw);
         self.evenColor = [UIColor colorWithWhite:0.96f alpha:1.0f];
         self.oddColor  = [UIColor colorWithWhite:0.88f alpha:1.0f];
     }
@@ -33,8 +33,8 @@
 {
     CGSize viewSize = self.bounds.size;
     
-    int rows = (int) ceilf(viewSize.height / squareWidth);
-    int columns = (int) ceilf(viewSize.width / squareWidth);
+    int rows = (int) ceilf((float)viewSize.height / (float)squareWidth);
+    int columns = (int) ceilf((float)viewSize.width / (float)squareWidth);
 
     CGContextRef c = UIGraphicsGetCurrentContext();
     

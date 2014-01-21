@@ -61,7 +61,7 @@
     CGPoint p1 = self.startedDrawingAtPoint, p2 = self.arrowEnd;
     CGFloat xDist = (p2.x - p1.x);
     CGFloat yDist = (p2.y - p1.y);
-    arrowLength = sqrt((xDist * xDist) + (yDist * yDist));
+    arrowLength = sqrtf((float)(xDist * xDist) + (float)(yDist * yDist));
 }
 
 - (void)setFrame:(CGRect)frame
@@ -128,7 +128,7 @@
 // Compacted version of Rob Mayoff's original code from https://gist.github.com/mayoff/4146780
 + (UIBezierPath *)bezierPathWithArrowFromPoint:(CGPoint)startPoint toPoint:(CGPoint)endPoint tailWidth:(CGFloat)tailWidth headWidth:(CGFloat)headWidth headLength:(CGFloat)headLength
 {
-    CGFloat length = hypotf(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
+    CGFloat length = hypotf((float)endPoint.x - (float)startPoint.x, (float)endPoint.y - (float)startPoint.y);
     CGFloat tailLength = length - headLength;
     
     CGPoint points[7] = {

@@ -25,9 +25,9 @@
 {
     [super setFrame:frame];
 
-    _borderWidth = MAX(6.0f, MIN(16.0f, MIN(frame.size.width, frame.size.height) * 0.075));
+    _borderWidth = MAX(6.0f, MIN(16.0f, MIN(frame.size.width, frame.size.height) * 0.075f));
     _cornerRadius = _borderWidth * 2.0f;
-    _strokeWidth = MAX(2.0, _borderWidth * 0.25);
+    _strokeWidth = MAX(2.0f, _borderWidth * 0.25f);
 
     self.layer.shadowRadius = MAX(4.0f, _borderWidth * 0.33f);
 }
@@ -43,7 +43,7 @@
     if (MIN(innerBox.size.height, innerBox.size.width) < _cornerRadius * 2.5) return;
 
     CGPathRef roundRectPath = CGPathCreateWithRoundedRect(innerBox, _cornerRadius, _cornerRadius, NULL);
-    CGPathRef thickStrokePath = CGPathCreateCopyByStrokingPath(roundRectPath, NULL, _borderWidth + _strokeWidth, kCGLineCapButt, kCGLineJoinBevel, 100.0);
+    CGPathRef thickStrokePath = CGPathCreateCopyByStrokingPath(roundRectPath, NULL, _borderWidth + _strokeWidth, kCGLineCapButt, kCGLineJoinBevel, 100.0f);
     self.layer.shadowPath = thickStrokePath;
     UIBezierPath *bezierPath = [UIBezierPath bezierPathWithCGPath:thickStrokePath];
     
