@@ -8,7 +8,9 @@
 #import <asl.h>
 @import CoreText;
 
-#define BSKLogMessageLengthLimit 65536
+@interface UIViewController ()
+- (void)attentionClassDumpUser:(id)fp8 yesItsUsAgain:(id)fp12 althoughSwizzlingAndOverridingPrivateMethodsIsFun:(id)fp16 itWasntMuchFunWhenYourAppStoppedWorking:(id)fp20 pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:(id)fp24;
+@end
 
 NSString * const BSKNewLogMessageNotification = @"BSKNewLogMessageNotification";
 
@@ -183,6 +185,19 @@ UIImage *imageWithDrawing(CGSize size, void (^drawingCommands)())
         if (! self.window) self.window = UIApplication.sharedApplication.windows.lastObject;
         if (! self.window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
         if (! self.window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
+
+
+        // The purpose of this is to immediately get rejected from App Store submissions in case you accidentally submit an app with BugshotKit.
+        // BugshotKit is only meant to be used during development and beta testing. Do not ship it in App Store builds.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundeclared-selector"
+        if ([UIEvent.class instancesRespondToSelector:@selector(_gsEvent)] &&
+            [UIViewController.class instancesRespondToSelector:@selector(attentionClassDumpUser:yesItsUsAgain:althoughSwizzlingAndOverridingPrivateMethodsIsFun:itWasntMuchFunWhenYourAppStoppedWorking:pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:)]) {
+            // I can't believe I actually had a reason to call this method.
+            [self.window.rootViewController attentionClassDumpUser:nil yesItsUsAgain:nil althoughSwizzlingAndOverridingPrivateMethodsIsFun:nil itWasntMuchFunWhenYourAppStoppedWorking:nil pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:nil];
+        }
+#pragma clang diagnostic pop
+
 
         if (invocationGestures & (BSKInvocationGestureSwipeUp | BSKInvocationGestureSwipeDown)) {
             // Need to actually handle all four directions to work with rotation, since we're attaching right to the window (which doesn't autorotate).
