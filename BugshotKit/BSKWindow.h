@@ -1,4 +1,4 @@
-//  BSKToggleButton.h
+//  BSKWindow.h
 //  See included LICENSE file for the (MIT) license.
 //  Created by Bryan Irace on 1/21/14.
 

@@ -10,6 +10,8 @@
 #pragma mark - UIResponder
 
 - (void)motionEnded:(UIEventSubtype)motion withEvent:(UIEvent *)event {
+    [super motionEnded:motion withEvent:event];
+
     if (event.subtype == UIEventSubtypeMotionShake) {
         [BugshotKit show];
     }
