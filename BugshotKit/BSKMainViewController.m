@@ -23,6 +23,7 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
 @property (nonatomic) UIImageView *consoleAccessoryView;
 @property (nonatomic) UILabel *screenshotLabel;
 @property (nonatomic) UILabel *consoleLabel;
+@property (nonatomic) UIStatusBarStyle *initialStatusBarStyle;
 @end
 
 @implementation BSKMainViewController
@@ -38,6 +39,11 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
         self.title = @"Bugshot";
         self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelButtonTapped:)];
         self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStylePlain target:nil action:nil];
+        
+        self.initialStatusBarStyle = (UIStatusBarStyle *)[[UIApplication sharedApplication] statusBarStyle];
+        if(self.initialStatusBarStyle != UIStatusBarStyleDefault) {
+            [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+        }
     }
     return self;
 }
@@ -260,6 +266,9 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
 
 - (void)cancelButtonTapped:(id)sender
 {
+    if(self.initialStatusBarStyle != UIStatusBarStyleDefault) {
+        [[UIApplication sharedApplication] setStatusBarStyle:self.initialStatusBarStyle];
+    }
     [self.navigationController.presentingViewController dismissViewControllerAnimated:YES completion:^{
         if (self.delegate) [self.delegate mainViewControllerDidClose:self];
     }];
