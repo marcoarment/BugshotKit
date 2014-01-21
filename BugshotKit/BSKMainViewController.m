@@ -7,6 +7,7 @@
 #import "BSKLogViewController.h"
 #import "BSKScreenshotViewController.h"
 #import "BSKToggleButton.h"
+#import "UIImage+RotationFix.h"
 #import <QuartzCore/QuartzCore.h>
 #import <unistd.h>
 #include <sys/types.h>
@@ -309,7 +310,7 @@
     mf.toRecipients = @[ BugshotKit.sharedManager.destinationEmailAddress ];
     mf.subject = [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
 
-    if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(screenshot) mimeType:@"image/png" fileName:@"screenshot.png"];
+    if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(rotateIfNeeded(screenshot, UIImageOrientationDown)) mimeType:@"image/png" fileName:@"screenshot.png"];
     if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];
     if (userInfoJSON) [mf addAttachmentData:userInfoJSON mimeType:@"application/json" fileName:@"info.json"];
 
