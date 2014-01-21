@@ -267,7 +267,7 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
 - (void)cancelButtonTapped:(id)sender
 {
     if(self.initialStatusBarStyle != UIStatusBarStyleDefault) {
-        [[UIApplication sharedApplication] setStatusBarStyle:self.initialStatusBarStyle];
+        [[UIApplication sharedApplication] setStatusBarStyle:(UIStatusBarStyle)self.initialStatusBarStyle];
     }
     [self.navigationController.presentingViewController dismissViewControllerAnimated:YES completion:^{
         if (self.delegate) [self.delegate mainViewControllerDidClose:self];
