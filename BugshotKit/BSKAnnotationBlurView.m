@@ -6,7 +6,6 @@
 #import "BugshotKit.h"
 #import "UIImage+ImageEffects.h"
 #import "BSKCheckerboardView.h"
-@import Accelerate;
 
 static inline UIImage *imageCroppedToRect(UIImage *image, CGRect rect)
 {

@@ -176,11 +176,6 @@
         [container addConstraint:[NSLayoutConstraint
             constraintWithItem:views[@"toggle"] attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:views[@"toggle"] attribute:NSLayoutAttributeWidth multiplier:1 constant:0
         ]];
-
-//        // bigger images on iPad
-//        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-//            [container addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[image(>=padImageHeight)]" options:0 metrics:metrics views:views]];
-//        }
     };
     
     layoutScreenshotUnit(screenshotContainer, @{
@@ -282,12 +277,12 @@
     NSString *appNameString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
     NSString *appVersionString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
 
-	size_t size;
-	sysctlbyname("hw.machine", NULL, &size, NULL, 0); 
-	char *name = malloc(size);
-	sysctlbyname("hw.machine", name, &size, NULL, 0);
-	NSString *modelIdentifier = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
-	free(name);
+    size_t size;
+    sysctlbyname("hw.machine", NULL, &size, NULL, 0); 
+    char *name = malloc(size);
+    sysctlbyname("hw.machine", name, &size, NULL, 0);
+    NSString *modelIdentifier = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
+    free(name);
 
     NSDictionary *userInfo = @{
         @"appName" : appNameString,
@@ -333,10 +328,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView { return 1; }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
-    return 1;
-}
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section { return 1; }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
