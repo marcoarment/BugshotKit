@@ -295,6 +295,14 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
             [self.window addGestureRecognizer:tgr];
             NSLog(@"[BugshotKit] Enabled for %d-finger triple-tap.", (int) fingerCount);
         }
+		
+		if (invocationGestures & BSKInvocationGestureLongPress) {
+            UILongPressGestureRecognizer *tgr = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+            tgr.numberOfTouchesRequired = fingerCount;
+            tgr.delegate = self;
+            [self.window addGestureRecognizer:tgr];
+            NSLog(@"[BugshotKit] Enabled for %d-finger long press.", (int) fingerCount);
+        }
     });
 }
 
