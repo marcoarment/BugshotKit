@@ -398,7 +398,6 @@ static UIImage *rotateIfNeeded(UIImage *src);
 
 
 // By Matteo Gavagnin on 21/01/14.
-static inline double radians (double degrees) {return degrees * M_PI/180;}
 static UIImage *rotateIfNeeded(UIImage *src)
 {
     if (src.imageOrientation == UIImageOrientationDown && src.size.width < src.size.height) {
@@ -407,11 +406,8 @@ static UIImage *rotateIfNeeded(UIImage *src)
         return UIGraphicsGetImageFromCurrentImageContext();
     } else if ((src.imageOrientation == UIImageOrientationLeft || src.imageOrientation == UIImageOrientationRight) && src.size.width > src.size.height) {
         UIGraphicsBeginImageContext(src.size);
-        
-        CGContextRef context = UIGraphicsGetCurrentContext();
         [src drawAtPoint:CGPointMake(0, 0)];
         return UIGraphicsGetImageFromCurrentImageContext();
-        
     } else {
         return src;
     }
