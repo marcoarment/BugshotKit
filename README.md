@@ -33,7 +33,7 @@ The easiest way to be sure you're not going to build BugshotKit into your App St
 2. Put that library, and the header files that come with it, somewhere in your project folder.
 3. Make sure your app build settings' Library Search Paths and Header Search Paths include the path to where you put these.
 4. Add `-lBugshotKit` to the Other Linker Flags setting, but only for the Debug and Ad-Hoc builds.
-5. Use a conditional macro (e.g. "`#ifdef DEBUG`"..."`#endif`") around the BugshotKit import and the invocation, below.
+5. Use a conditional macro (e.g. "`#if defined(DEBUG) || defined(ADHOC)`"..."`#endif`") around the BugshotKit import and the invocation, below.
 
 ## Usage
 
