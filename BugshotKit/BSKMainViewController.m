@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <sys/sysctl.h>
 
-static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
+static UIImage *rotateIfNeeded(UIImage *src);
 
 @interface BSKMainViewController ()
 @property (nonatomic) BSKToggleButton *includeScreenshotToggle;
@@ -311,7 +311,7 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
     mf.toRecipients = [BugshotKit.sharedManager.destinationEmailAddress componentsSeparatedByString:@","];
     mf.subject = BugshotKit.sharedManager.emailSubjectBlock ? BugshotKit.sharedManager.emailSubjectBlock(userInfo) : [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
 
-    if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(rotateIfNeeded(screenshot, UIImageOrientationDown)) mimeType:@"image/png" fileName:@"screenshot.png"];
+    if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(rotateIfNeeded(screenshot)) mimeType:@"image/png" fileName:@"screenshot.png"];
     if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];
     if (userInfoJSON) [mf addAttachmentData:userInfoJSON mimeType:@"application/json" fileName:@"info.json"];
 
@@ -399,7 +399,7 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation);
 
 // By Matteo Gavagnin on 21/01/14.
 static inline double radians (double degrees) {return degrees * M_PI/180;}
-static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation)
+static UIImage *rotateIfNeeded(UIImage *src)
 {
     if (src.imageOrientation == UIImageOrientationDown && src.size.width < src.size.height) {
         UIGraphicsBeginImageContext(src.size);
@@ -409,19 +409,7 @@ static UIImage *rotateIfNeeded(UIImage *src, UIImageOrientation orientation)
         UIGraphicsBeginImageContext(src.size);
         
         CGContextRef context = UIGraphicsGetCurrentContext();
-        
-        if (orientation == UIImageOrientationRight) {
-            CGContextRotateCTM (context, (float)radians(90));
-        } else if (orientation == UIImageOrientationLeft) {
-            CGContextRotateCTM (context, (float)radians(-90));
-        } else if (orientation == UIImageOrientationDown) {
-            // CGContextRotateCTM (context, radians(-90));
-        } else if (orientation == UIImageOrientationUp) {
-            CGContextRotateCTM (context, (float)radians(90));
-        }
-        
         [src drawAtPoint:CGPointMake(0, 0)];
-        
         return UIGraphicsGetImageFromCurrentImageContext();
         
     } else {
