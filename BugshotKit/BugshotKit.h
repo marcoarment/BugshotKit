@@ -71,16 +71,16 @@ typedef enum : NSUInteger {
 
 - (NSString *)currentConsoleLogWithDateStamps:(BOOL)dateStamps;
 
-@property (nonatomic) UIColor *annotationFillColor;
-@property (nonatomic) UIColor *annotationStrokeColor;
-@property (nonatomic) UIColor *toggleOnColor;
-@property (nonatomic) UIColor *toggleOffColor;
+@property (nonatomic, strong) UIColor *annotationFillColor;
+@property (nonatomic, strong) UIColor *annotationStrokeColor;
+@property (nonatomic, strong) UIColor *toggleOnColor;
+@property (nonatomic, strong) UIColor *toggleOffColor;
 
 
 // don't mess with these
-@property (nonatomic) UIImage *snapshotImage;
+@property (nonatomic, strong) UIImage *snapshotImage;
 @property (nonatomic, copy) NSArray *annotations;
-@property (nonatomic) UIImage *annotatedImage;
+@property (nonatomic, strong) UIImage *annotatedImage;
 @property (nonatomic, copy) NSDictionary *(^extraInfoBlock)();
 @property (nonatomic, copy) NSString *(^emailSubjectBlock)(NSDictionary *info);
 
