@@ -25,6 +25,16 @@ To help prevent accidentally shipping your app with BugshotKit, I've included a 
 
 These safeguards aren't guaranteed. Please don't rely on them. Remove BugshotKit from your App Store builds.
 
+## Setup
+
+The easiest way to be sure you're not going to build BugshotKit into your App Store builds is to link to it just in your Debug and Ad-Hoc builds. To do that:
+
+1. Build a static library from the BugshotKit Xcode project.
+2. Put that library, and the header files that come with it, somewhere in your project folder.
+3. Make sure your app build settings' Library Search Paths and Header Search Paths include the path to where you put these.
+4. Add `-lBugshotKit` to the Other Linker Flags setting, but only for the Debug and Ad-Hoc builds.
+5. Use a conditional macro (e.g. "`#ifdef DEBUG`"..."`#endif`") around the BugshotKit import and the invocation, below.
+
 ## Usage
 
 Simply invoke `[BugshotKit enableWithNumberOfTouches:...]` from your `application:didFinishLaunchingWithOptions:`:
