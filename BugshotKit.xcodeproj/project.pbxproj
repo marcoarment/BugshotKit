@@ -23,6 +23,7 @@
 		4C15DA6D188F491000767C78 /* BSKWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C15DA55188F491000767C78 /* BSKWindow.m */; };
 		4C15DA6F188F491000767C78 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C15DA57188F491000767C78 /* UIImage+ImageEffects.m */; };
 		4C15DA70188F49AB00767C78 /* BugshotKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C15DA38188F48E400767C78 /* BugshotKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		4C15DAA2188F563A00767C78 /* BSKWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C15DA54188F491000767C78 /* BSKWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -145,6 +146,7 @@
 			files = (
 				4C15DA70188F49AB00767C78 /* BugshotKit.h in Headers */,
 				4C15DA64188F491000767C78 /* BSKMainViewController.h in Headers */,
+				4C15DAA2188F563A00767C78 /* BSKWindow.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
