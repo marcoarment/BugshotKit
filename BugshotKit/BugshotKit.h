@@ -20,6 +20,7 @@ typedef enum : NSUInteger {
     BSKInvocationGestureSwipeFromRightEdge = (1 << 2), // For whatever reason, this gesture recognizer always only needs one touch, regardless of your numberOfTouches setting.
     BSKInvocationGestureDoubleTap = (1 << 3),
     BSKInvocationGestureTripleTap = (1 << 4),
+	BSKInvocationGestureLongPress = (1 << 5),
 } BSKInvocationGestureMask;
 
 @interface BugshotKit : NSObject <UIGestureRecognizerDelegate, BSKMainViewControllerDelegate>
