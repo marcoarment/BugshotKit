@@ -8,7 +8,9 @@
 
 #import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController () {
+    int alertNumber;
+}
 
 @end
 
@@ -24,6 +26,12 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (IBAction)showAlertButtonTapped:(id)sender
+{
+    alertNumber++;
+    [[[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"Warning %d", alertNumber] message:@"Alerts happen." delegate:nil cancelButtonTitle:@"Accept Fate" otherButtonTitles:nil] show];
 }
 
 @end

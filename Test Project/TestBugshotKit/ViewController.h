@@ -10,4 +10,6 @@
 
 @interface ViewController : UIViewController
 
+- (IBAction)showAlertButtonTapped:(id)sender;
+
 @end

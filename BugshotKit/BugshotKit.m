@@ -35,12 +35,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 
 @interface BugshotKit () {
     dispatch_source_t source;
-    int sourceCalls;
-    BSKInvocationGestureMask invocationGestures;
 }
 @property (nonatomic) BOOL isShowing;
 @property (nonatomic) BOOL isDisabled;
 @property (nonatomic, weak) UIWindow *window;
+@property (nonatomic) NSMapTable *windowsWithGesturesAttached;
 
 @property (nonatomic) NSMutableSet *collectedASLMessageIDs;
 @property (nonatomic) NSMutableArray *consoleMessages;
@@ -49,6 +48,9 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 @property (nonatomic) NSTimeInterval lastConsoleUpdate;
 @property (nonatomic) BOOL consoleHasNewData;
 @property (nonatomic) NSTimer *consoleThrottleTimer;
+
+@property (nonatomic) BSKInvocationGestureMask invocationGestures;
+@property (nonatomic) NSUInteger invocationGesturesTouchCount;
 
 @end
 
@@ -66,12 +68,21 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 
 + (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress
 {
-    [BugshotKit.sharedManager attachWithumberOfTouches:fingerCount invocationGestures:invocationGestures];
+    if (BugshotKit.sharedManager.isDisabled) return;
+    BugshotKit.sharedManager.invocationGestures = invocationGestures;
+    BugshotKit.sharedManager.invocationGesturesTouchCount = fingerCount;
     BugshotKit.sharedManager.destinationEmailAddress = toEmailAddress;
+    
+    // dispatched to next main-thread loop so the app delegate has a chance to set up its window
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [BugshotKit.sharedManager ensureWindow];
+        [BugshotKit.sharedManager attachToWindow:BugshotKit.sharedManager.window];
+    });
 }
 
 + (void)show
 {
+    [BugshotKit.sharedManager ensureWindow];
     [BugshotKit.sharedManager handleOpenGesture:nil];
 }
 
@@ -126,6 +137,8 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
             return self;
         }
         
+        self.windowsWithGesturesAttached = [NSMapTable weakToWeakObjectsMapTable];
+        
         self.lastConsoleUpdate = 0;
         self.annotationFillColor = [UIColor colorWithRed:1.0f green:0.2196f blue:0.03922f alpha:1.0f]; // Bugshot red-orange
         self.annotationStrokeColor = [UIColor whiteColor];
@@ -138,6 +151,8 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         self.logQueue = dispatch_queue_create("BugshotKit logging", NULL);
         
         self.consoleLogMaxLines = 500;
+        
+        [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(newWindowDidBecomeVisible:) name:UIWindowDidBecomeVisibleNotification object:nil];
         
         // Notify on every write to stderr (so we can track NSLog real-time, without polling, when a console is showing)
         source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, (uintptr_t)fileno(stderr), DISPATCH_VNODE_WRITE, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
@@ -166,6 +181,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 
 - (void)dealloc
 {
+    [NSNotificationCenter.defaultCenter removeObserver:self name:UIWindowDidBecomeVisibleNotification object:nil];
     if (! self.isDisabled) {
         dispatch_source_cancel(source);
     }
@@ -184,126 +200,138 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     });
 }
 
-- (void)attachWithumberOfTouches:(NSUInteger)fingerCount invocationGestures:(BSKInvocationGestureMask)gestures
+- (void)ensureWindow
 {
-    if (self.isDisabled) return;
-    invocationGestures = gestures;
+    if (self.window) return;
     
-    // dispatched to next main-thread loop so the app delegate has a chance to set up its window
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self.window = UIApplication.sharedApplication.keyWindow;
-        if (! self.window) self.window = UIApplication.sharedApplication.windows.lastObject;
-        if (! self.window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
-        if (! self.window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
+    self.window = UIApplication.sharedApplication.keyWindow;
+    if (! self.window) self.window = UIApplication.sharedApplication.windows.lastObject;
+    if (! self.window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
+    if (! self.window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
 
-
-        // The purpose of this is to immediately get rejected from App Store submissions in case you accidentally submit an app with BugshotKit.
-        // BugshotKit is only meant to be used during development and beta testing. Do not ship it in App Store builds.
+    // The purpose of this is to immediately get rejected from App Store submissions in case you accidentally submit an app with BugshotKit.
+    // BugshotKit is only meant to be used during development and beta testing. Do not ship it in App Store builds.
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundeclared-selector"
-        if ([UIEvent.class instancesRespondToSelector:@selector(_gsEvent)] &&
-            [UIViewController.class instancesRespondToSelector:@selector(attentionClassDumpUser:yesItsUsAgain:althoughSwizzlingAndOverridingPrivateMethodsIsFun:itWasntMuchFunWhenYourAppStoppedWorking:pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:)]) {
-            // I can't believe I actually had a reason to call this method.
-            [self.window.rootViewController attentionClassDumpUser:nil yesItsUsAgain:nil althoughSwizzlingAndOverridingPrivateMethodsIsFun:nil itWasntMuchFunWhenYourAppStoppedWorking:nil pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:nil];
-        }
+    if ([UIEvent.class instancesRespondToSelector:@selector(_gsEvent)] &&
+        [UIViewController.class instancesRespondToSelector:@selector(attentionClassDumpUser:yesItsUsAgain:althoughSwizzlingAndOverridingPrivateMethodsIsFun:itWasntMuchFunWhenYourAppStoppedWorking:pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:)]) {
+        // I can't believe I actually had a reason to call this method.
+        [self.window.rootViewController attentionClassDumpUser:nil yesItsUsAgain:nil althoughSwizzlingAndOverridingPrivateMethodsIsFun:nil itWasntMuchFunWhenYourAppStoppedWorking:nil pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:nil];
+    }
 #pragma clang diagnostic pop
+}
 
+- (void)newWindowDidBecomeVisible:(NSNotification *)n
+{
+    UIWindow *newWindow = (UIWindow *) n.object;
+    if (! newWindow || ! [newWindow isKindOfClass:UIWindow.class]) return;
+    [self attachToWindow:newWindow];
+}
 
-        if (invocationGestures & (BSKInvocationGestureSwipeUp | BSKInvocationGestureSwipeDown)) {
-            // Need to actually handle all four directions to work with rotation, since we're attaching right to the window (which doesn't autorotate).
-            // Making four different GRs, rather than one with all four directions set, so it's possible to distinguish which direction was swiped in the action method.
-            //
-            // (dealing with rotation is awesome)
-            
-            UISwipeGestureRecognizer *sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
-            sgr.numberOfTouchesRequired = fingerCount;
-            sgr.direction = UISwipeGestureRecognizerDirectionUp;
-            sgr.delegate = self;
-            [self.window addGestureRecognizer:sgr];
+- (void)attachToWindow:(UIWindow *)window
+{
+    if (self.isDisabled) return;
 
-            sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
-            sgr.numberOfTouchesRequired = fingerCount;
-            sgr.direction = UISwipeGestureRecognizerDirectionDown;
-            sgr.delegate = self;
-            [self.window addGestureRecognizer:sgr];
+    if ([self.windowsWithGesturesAttached objectForKey:window]) return;
+    [self.windowsWithGesturesAttached setObject:window forKey:window];
 
-            sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
-            sgr.numberOfTouchesRequired = fingerCount;
-            sgr.direction = UISwipeGestureRecognizerDirectionLeft;
-            sgr.delegate = self;
-            [self.window addGestureRecognizer:sgr];
+    BSKInvocationGestureMask invocationGestures = self.invocationGestures;
+    NSUInteger fingerCount = self.invocationGesturesTouchCount;
 
-            sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
-            sgr.numberOfTouchesRequired = fingerCount;
-            sgr.direction = UISwipeGestureRecognizerDirectionRight;
-            sgr.delegate = self;
-            [self.window addGestureRecognizer:sgr];
+    if (invocationGestures & (BSKInvocationGestureSwipeUp | BSKInvocationGestureSwipeDown)) {
+        // Need to actually handle all four directions to work with rotation, since we're attaching right to the window (which doesn't autorotate).
+        // Making four different GRs, rather than one with all four directions set, so it's possible to distinguish which direction was swiped in the action method.
+        //
+        // (dealing with rotation is awesome)
+        
+        UISwipeGestureRecognizer *sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+        sgr.numberOfTouchesRequired = fingerCount;
+        sgr.direction = UISwipeGestureRecognizerDirectionUp;
+        sgr.delegate = self;
+        [window addGestureRecognizer:sgr];
 
-            if (invocationGestures & BSKInvocationGestureSwipeUp) NSLog(@"[BugshotKit] Enabled for %d-finger swipe up.", (int) fingerCount);
-            if (invocationGestures & BSKInvocationGestureSwipeDown) NSLog(@"[BugshotKit] Enabled for %d-finger swipe down.", (int) fingerCount);
-        }
+        sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+        sgr.numberOfTouchesRequired = fingerCount;
+        sgr.direction = UISwipeGestureRecognizerDirectionDown;
+        sgr.delegate = self;
+        [window addGestureRecognizer:sgr];
 
-        if (invocationGestures & BSKInvocationGestureSwipeFromRightEdge) {
-            // Similar deal with these (see swipe recognizers above), but screen-edge gesture recognizers always return 0 upon reading the .edges property.
-            // I guess it's write-only. So we actually need four different action methods to know which one was invoked.
-            
-            UIScreenEdgePanGestureRecognizer *egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(topEdgePanGesture:)];
-            egr.edges = UIRectEdgeTop;
-            egr.minimumNumberOfTouches = fingerCount;
-            egr.maximumNumberOfTouches = fingerCount;
-            egr.delegate = self;
-            [self.window addGestureRecognizer:egr];
+        sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+        sgr.numberOfTouchesRequired = fingerCount;
+        sgr.direction = UISwipeGestureRecognizerDirectionLeft;
+        sgr.delegate = self;
+        [window addGestureRecognizer:sgr];
 
-            egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(bottomEdgePanGesture:)];
-            egr.edges = UIRectEdgeBottom;
-            egr.minimumNumberOfTouches = fingerCount;
-            egr.maximumNumberOfTouches = fingerCount;
-            egr.delegate = self;
-            [self.window addGestureRecognizer:egr];
+        sgr = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+        sgr.numberOfTouchesRequired = fingerCount;
+        sgr.direction = UISwipeGestureRecognizerDirectionRight;
+        sgr.delegate = self;
+        [window addGestureRecognizer:sgr];
 
-            egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(leftEdgePanGesture:)];
-            egr.edges = UIRectEdgeLeft;
-            egr.minimumNumberOfTouches = fingerCount;
-            egr.maximumNumberOfTouches = fingerCount;
-            egr.delegate = self;
-            [self.window addGestureRecognizer:egr];
+        if (invocationGestures & BSKInvocationGestureSwipeUp) NSLog(@"[BugshotKit] Enabled for %d-finger swipe up.", (int) fingerCount);
+        if (invocationGestures & BSKInvocationGestureSwipeDown) NSLog(@"[BugshotKit] Enabled for %d-finger swipe down.", (int) fingerCount);
+    }
 
-            egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(rightEdgePanGesture:)];
-            egr.edges = UIRectEdgeRight;
-            egr.minimumNumberOfTouches = fingerCount;
-            egr.maximumNumberOfTouches = fingerCount;
-            egr.delegate = self;
-            [self.window addGestureRecognizer:egr];
+    if (invocationGestures & BSKInvocationGestureSwipeFromRightEdge) {
+        // Similar deal with these (see swipe recognizers above), but screen-edge gesture recognizers always return 0 upon reading the .edges property.
+        // I guess it's write-only. So we actually need four different action methods to know which one was invoked.
+        
+        UIScreenEdgePanGestureRecognizer *egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(topEdgePanGesture:)];
+        egr.edges = UIRectEdgeTop;
+        egr.minimumNumberOfTouches = fingerCount;
+        egr.maximumNumberOfTouches = fingerCount;
+        egr.delegate = self;
+        [window addGestureRecognizer:egr];
 
-            NSLog(@"[BugshotKit] Enabled for swipe from right edge.");
-        }
+        egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(bottomEdgePanGesture:)];
+        egr.edges = UIRectEdgeBottom;
+        egr.minimumNumberOfTouches = fingerCount;
+        egr.maximumNumberOfTouches = fingerCount;
+        egr.delegate = self;
+        [window addGestureRecognizer:egr];
 
-        if (invocationGestures & BSKInvocationGestureDoubleTap) {
-            UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
-            tgr.numberOfTouchesRequired = fingerCount;
-            tgr.numberOfTapsRequired = 2;
-            tgr.delegate = self;
-            [self.window addGestureRecognizer:tgr];
-            NSLog(@"[BugshotKit] Enabled for %d-finger double-tap.", (int) fingerCount);
-        }
+        egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(leftEdgePanGesture:)];
+        egr.edges = UIRectEdgeLeft;
+        egr.minimumNumberOfTouches = fingerCount;
+        egr.maximumNumberOfTouches = fingerCount;
+        egr.delegate = self;
+        [window addGestureRecognizer:egr];
 
-        if (invocationGestures & BSKInvocationGestureTripleTap) {
-            UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
-            tgr.numberOfTouchesRequired = fingerCount;
-            tgr.numberOfTapsRequired = 3;
-            tgr.delegate = self;
-            [self.window addGestureRecognizer:tgr];
-            NSLog(@"[BugshotKit] Enabled for %d-finger triple-tap.", (int) fingerCount);
-        }
-		
-		if (invocationGestures & BSKInvocationGestureLongPress) {
-            UILongPressGestureRecognizer *tgr = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
-            tgr.numberOfTouchesRequired = fingerCount;
-            tgr.delegate = self;
-            [self.window addGestureRecognizer:tgr];
-            NSLog(@"[BugshotKit] Enabled for %d-finger long press.", (int) fingerCount);
-        }
-    });
+        egr = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(rightEdgePanGesture:)];
+        egr.edges = UIRectEdgeRight;
+        egr.minimumNumberOfTouches = fingerCount;
+        egr.maximumNumberOfTouches = fingerCount;
+        egr.delegate = self;
+        [window addGestureRecognizer:egr];
+
+        NSLog(@"[BugshotKit] Enabled for swipe from right edge.");
+    }
+
+    if (invocationGestures & BSKInvocationGestureDoubleTap) {
+        UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+        tgr.numberOfTouchesRequired = fingerCount;
+        tgr.numberOfTapsRequired = 2;
+        tgr.delegate = self;
+        [window addGestureRecognizer:tgr];
+        NSLog(@"[BugshotKit] Enabled for %d-finger double-tap.", (int) fingerCount);
+    }
+
+    if (invocationGestures & BSKInvocationGestureTripleTap) {
+        UITapGestureRecognizer *tgr = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+        tgr.numberOfTouchesRequired = fingerCount;
+        tgr.numberOfTapsRequired = 3;
+        tgr.delegate = self;
+        [window addGestureRecognizer:tgr];
+        NSLog(@"[BugshotKit] Enabled for %d-finger triple-tap.", (int) fingerCount);
+    }
+    
+    if (invocationGestures & BSKInvocationGestureLongPress) {
+        UILongPressGestureRecognizer *tgr = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleOpenGesture:)];
+        tgr.numberOfTouchesRequired = fingerCount;
+        tgr.delegate = self;
+        [window addGestureRecognizer:tgr];
+        NSLog(@"[BugshotKit] Enabled for %d-finger long press.", (int) fingerCount);
+    }
 }
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer { return YES; }
@@ -342,14 +370,14 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         UISwipeGestureRecognizer *sgr = (UISwipeGestureRecognizer *)sender;
         
         BOOL validSwipe = NO;
-        if (invocationGestures & BSKInvocationGestureSwipeUp) {
+        if (self.invocationGestures & BSKInvocationGestureSwipeUp) {
             if      (interfaceOrientation == UIInterfaceOrientationPortrait && sgr.direction == UISwipeGestureRecognizerDirectionUp) validSwipe = YES;
             else if (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown && sgr.direction == UISwipeGestureRecognizerDirectionDown) validSwipe = YES;
             else if (interfaceOrientation == UIInterfaceOrientationLandscapeLeft && sgr.direction == UISwipeGestureRecognizerDirectionLeft) validSwipe = YES;
             else if (interfaceOrientation == UIInterfaceOrientationLandscapeRight && sgr.direction == UISwipeGestureRecognizerDirectionRight) validSwipe = YES;
         }
         
-        if (! validSwipe && (invocationGestures & BSKInvocationGestureSwipeDown)) {
+        if (! validSwipe && (self.invocationGestures & BSKInvocationGestureSwipeDown)) {
             if      (interfaceOrientation == UIInterfaceOrientationPortrait && sgr.direction == UISwipeGestureRecognizerDirectionDown) validSwipe = YES;
             else if (interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown && sgr.direction == UISwipeGestureRecognizerDirectionUp) validSwipe = YES;
             else if (interfaceOrientation == UIInterfaceOrientationLandscapeLeft && sgr.direction == UISwipeGestureRecognizerDirectionRight) validSwipe = YES;
@@ -363,9 +391,24 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     self.consoleThrottleTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(consoleThrottleTimerFired:) userInfo:nil repeats:YES];
     dispatch_resume(source);
 
-    UIGraphicsBeginImageContextWithOptions(self.window.bounds.size, YES, UIScreen.mainScreen.scale);
-    [self.window drawViewHierarchyInRect:self.window.bounds afterScreenUpdates:NO];
+    UIGraphicsBeginImageContextWithOptions(self.window.bounds.size, NO, UIScreen.mainScreen.scale);
+    
+    NSMutableSet *drawnWindows = [NSMutableSet set];
+    for (UIWindow *window in UIApplication.sharedApplication.windows) {
+        [drawnWindows addObject:window];
+        [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:NO];
+    }
+    
+    // Must iterate through all windows we know about because UIAlertViews, etc. don't add themselves to UIApplication.windows
+    for (UIWindow *window in self.windowsWithGesturesAttached) {
+        if ([drawnWindows containsObject:window]) continue;
+        [drawnWindows addObject:window];
+        
+        [window.layer renderInContext:UIGraphicsGetCurrentContext()]; // drawViewHierarchyInRect: doesn't capture UIAlertView opacity properly
+    }
+
     self.snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
 
     if (interfaceOrientation != UIInterfaceOrientationPortrait) {
         self.snapshotImage = [[UIImage alloc] initWithCGImage:self.snapshotImage.CGImage scale:UIScreen.mainScreen.scale orientation:(
