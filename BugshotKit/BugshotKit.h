@@ -66,6 +66,13 @@ typedef enum : NSUInteger {
 */
 + (void)setEmailSubjectBlock:(NSString *(^)(NSDictionary *))emailSubjectBlock;
 
+/*
+ You can optionally customize the email body by setting an emailBodyBlock.
+ 
+ info is the app-info dictionary from above (including anything you provided with extraInfoBlock)
+ */
++ (void)setEmailBodyBlock:(NSString *(^)(NSDictionary *))emailBodyBlock;
+
 
 // feel free to mess with these if you want
 
@@ -83,6 +90,7 @@ typedef enum : NSUInteger {
 @property (nonatomic, strong) UIImage *annotatedImage;
 @property (nonatomic, copy) NSDictionary *(^extraInfoBlock)();
 @property (nonatomic, copy) NSString *(^emailSubjectBlock)(NSDictionary *info);
+@property (nonatomic, copy) NSString *(^emailBodyBlock)(NSDictionary *info);
 
 @end
 

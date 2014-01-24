@@ -96,6 +96,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BugshotKit.sharedManager.emailSubjectBlock = emailSubjectBlock;
 }
 
++ (void)setEmailBodyBlock:(NSString *(^)(NSDictionary *))emailBodyBlock;
+{
+    BugshotKit.sharedManager.emailBodyBlock = emailBodyBlock;
+}
+
 + (UIFont *)consoleFontWithSize:(CGFloat)size
 {
     static dispatch_once_t onceToken;
