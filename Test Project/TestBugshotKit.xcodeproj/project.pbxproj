@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A9595413189329470000850E /* MABGTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = A9595412189329470000850E /* MABGTimer.m */; };
 		A96A9868188EF5A40066A404 /* BSKWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = A96A9865188EF5A40066A404 /* BSKWindow.m */; };
 		A9A84703188D854C009C5B78 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9A84702188D854C009C5B78 /* Foundation.framework */; };
 		A9A84705188D854C009C5B78 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A9A84704188D854C009C5B78 /* CoreGraphics.framework */; };
@@ -34,6 +35,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A9595411189329470000850E /* MABGTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MABGTimer.h; sourceTree = "<group>"; };
+		A9595412189329470000850E /* MABGTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MABGTimer.m; sourceTree = "<group>"; };
 		A96A9864188EF5A40066A404 /* BSKWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKWindow.h; sourceTree = "<group>"; };
 		A96A9865188EF5A40066A404 /* BSKWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKWindow.m; sourceTree = "<group>"; };
 		A9A846FF188D854C009C5B78 /* TestBugshotKit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestBugshotKit.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -176,6 +179,8 @@
 				A9A8476B188D924F009C5B78 /* BSKNavigationController.m */,
 				A9A8474F188D8696009C5B78 /* UIImage+ImageEffects.h */,
 				A9A84750188D8696009C5B78 /* UIImage+ImageEffects.m */,
+				A9595411189329470000850E /* MABGTimer.h */,
+				A9595412189329470000850E /* MABGTimer.m */,
 			);
 			name = BugshotKit;
 			path = ../../BugshotKit;
@@ -251,6 +256,7 @@
 				A9A84757188D8696009C5B78 /* BSKMainViewController.m in Sources */,
 				A9A84755188D8696009C5B78 /* BSKCheckerboardView.m in Sources */,
 				A9A8475B188D8696009C5B78 /* UIImage+ImageEffects.m in Sources */,
+				A9595413189329470000850E /* MABGTimer.m in Sources */,
 				A9A84751188D8696009C5B78 /* BSKAnnotationArrowView.m in Sources */,
 				A9A8471C188D854C009C5B78 /* ViewController.m in Sources */,
 				A9A84756188D8696009C5B78 /* BSKLogViewController.m in Sources */,
