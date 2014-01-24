@@ -70,6 +70,7 @@ typedef enum : NSUInteger {
 // feel free to mess with these if you want
 
 - (NSString *)currentConsoleLogWithDateStamps:(BOOL)dateStamps;
+- (UIImage *)consoleImageWithSize:(CGSize)size fontSize:(CGFloat)fontSize emptyBottomLine:(BOOL)emptyBottomLine;
 
 @property (nonatomic, strong) UIColor *annotationFillColor;
 @property (nonatomic, strong) UIColor *annotationStrokeColor;

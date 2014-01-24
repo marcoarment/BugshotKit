@@ -6,7 +6,7 @@
 #import "BugshotKit.h"
 
 @interface BSKLogViewController ()
-@property (nonatomic) UITextView *textView;
+@property (nonatomic) UIImageView *consoleView;
 @end
 
 static int markerNumber = 0;
@@ -18,6 +18,7 @@ static int markerNumber = 0;
     if ( (self = [super init]) ) {
         self.title = @"Debug Log";
         self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addMarkerButtonTapped:)];
+        [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(updateLiveLog:) name:BSKNewLogMessageNotification object:nil];
     }
     return self;
 }
@@ -31,8 +32,11 @@ static int markerNumber = 0;
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self updateText:nil];
-    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(updateText:) name:BSKNewLogMessageNotification object:nil];
+
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"|[c]|" options:0 metrics:nil views:@{ @"c" : self.consoleView }]];
+    [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[top][c]|" options:0 metrics:nil views:@{ @"c" : self.consoleView, @"top" : self.topLayoutGuide }]];
+
+    dispatch_async(dispatch_get_main_queue(), ^{ [self updateLiveLog:nil]; });
 }
 
 - (void)dealloc
@@ -48,23 +52,18 @@ static int markerNumber = 0;
     view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     view.autoresizesSubviews = YES;
     
-    self.textView = [[UITextView alloc] initWithFrame:frame];
-    self.textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    self.textView.font = [BugshotKit consoleFontWithSize:(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? 13.0f : 9.0f)];
-    self.textView.editable = NO;
-    [view addSubview:self.textView];
+    self.consoleView = [[UIImageView alloc] initWithFrame:frame];
+    self.consoleView.translatesAutoresizingMaskIntoConstraints = NO;
+    [view addSubview:self.consoleView];
     
     self.view = view;
 }
 
-- (void)updateText:(NSNotification *)n
+- (void)updateLiveLog:(NSNotification *)n
 {
-    NSMutableString *text = [[BugshotKit.sharedManager currentConsoleLogWithDateStamps:NO] mutableCopy];
-    [text appendString:@"\n\n"];
-    self.textView.text = text;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self.textView scrollRangeToVisible:NSMakeRange(self.textView.text.length - 1, 1)];
-    });
+    if (! self.isViewLoaded) return;
+    self.consoleView.image = [BugshotKit.sharedManager consoleImageWithSize:self.consoleView.bounds.size fontSize:(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? 13.0f : 9.0f) emptyBottomLine:YES];
 }
+
 
 @end

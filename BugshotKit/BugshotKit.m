@@ -6,6 +6,7 @@
 #import "TargetConditionals.h"
 #import "BSKNavigationController.h"
 #import <asl.h>
+#import "MABGTimer.h"
 @import CoreText;
 
 @interface UIViewController ()
@@ -45,9 +46,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 @property (nonatomic) NSMutableArray *consoleMessages;
 
 @property (nonatomic) dispatch_queue_t logQueue;
-@property (nonatomic) NSTimeInterval lastConsoleUpdate;
-@property (nonatomic) BOOL consoleHasNewData;
-@property (nonatomic) NSTimer *consoleThrottleTimer;
+@property (nonatomic) MABGTimer *consoleRefreshThrottler;
 
 @property (nonatomic) BSKInvocationGestureMask invocationGestures;
 @property (nonatomic) NSUInteger invocationGesturesTouchCount;
@@ -139,7 +138,6 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         
         self.windowsWithGesturesAttached = [NSMapTable weakToWeakObjectsMapTable];
         
-        self.lastConsoleUpdate = 0;
         self.annotationFillColor = [UIColor colorWithRed:1.0f green:0.2196f blue:0.03922f alpha:1.0f]; // Bugshot red-orange
         self.annotationStrokeColor = [UIColor whiteColor];
         
@@ -148,9 +146,12 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         
         self.collectedASLMessageIDs = [NSMutableSet set];
         self.consoleMessages = [NSMutableArray array];
-        self.logQueue = dispatch_queue_create("BugshotKit logging", NULL);
+        self.logQueue = dispatch_queue_create("BugshotKit console", NULL);
         
         self.consoleLogMaxLines = 500;
+        
+        self.consoleRefreshThrottler = [[MABGTimer alloc] initWithObject:self behavior:MABGTimerCoalesce queueLabel:"BugshotKit console throttler"];
+        [self.consoleRefreshThrottler setTargetQueue:self.logQueue];
         
         [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(newWindowDidBecomeVisible:) name:UIWindowDidBecomeVisibleNotification object:nil];
         
@@ -158,22 +159,18 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, (uintptr_t)fileno(stderr), DISPATCH_VNODE_WRITE, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
         __weak BugshotKit *weakSelf = self;
         dispatch_source_set_event_handler(source, ^{
-            if (! weakSelf.isShowing) return;
-
-            NSTimeInterval now = [NSDate date].timeIntervalSince1970;
-            if (now - weakSelf.lastConsoleUpdate < 0.5) {
-                weakSelf.consoleHasNewData = YES;
-            } else {
-                weakSelf.lastConsoleUpdate = now;
-                dispatch_async(self.logQueue,^{
-                    [weakSelf updateFromASL];
-                    weakSelf.consoleHasNewData = NO;
-                });
-            }
+            [weakSelf.consoleRefreshThrottler afterDelay:0.5 do:^(id self) {
+                if ([self updateFromASL]) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [NSNotificationCenter.defaultCenter postNotificationName:BSKNewLogMessageNotification object:nil];
+                    });
+                }
+            }];
         });
-
+        
         dispatch_async(self.logQueue, ^{
             [self updateFromASL];
+            dispatch_resume(source);
         });
     }
     return self;
@@ -185,19 +182,6 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     if (! self.isDisabled) {
         dispatch_source_cancel(source);
     }
-}
-
-- (void)consoleThrottleTimerFired:(NSTimer *)t
-{
-    if (! self.consoleHasNewData) return;
-
-    NSTimeInterval now = [NSDate date].timeIntervalSince1970;
-    self.lastConsoleUpdate = now;
-    
-    dispatch_async(self.logQueue, ^{
-        [self updateFromASL];
-        self.consoleHasNewData = NO;
-    });
 }
 
 - (void)ensureWindow
@@ -388,8 +372,6 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     }
 
     self.isShowing = YES;
-    self.consoleThrottleTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(consoleThrottleTimerFired:) userInfo:nil repeats:YES];
-    dispatch_resume(source);
 
     UIGraphicsBeginImageContextWithOptions(self.window.bounds.size, NO, UIScreen.mainScreen.scale);
     
@@ -426,18 +408,12 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BSKNavigationController *nc = [[BSKNavigationController alloc] initWithRootViewController:mvc lockedToRotation:self.window.rootViewController.interfaceOrientation];
     nc.navigationBar.tintColor = BugshotKit.sharedManager.annotationFillColor;
     
-    
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
 }
 
 - (void)mainViewControllerDidClose:(BSKMainViewController *)mainViewController
 {
-    if (self.isShowing) {
-        [self.consoleThrottleTimer invalidate];
-        self.consoleThrottleTimer = nil;
-        self.isShowing = NO;
-        dispatch_suspend(source);
-    }
+    self.isShowing = NO;
     self.snapshotImage = nil;
     self.annotatedImage = nil;
     self.annotations = nil;
@@ -449,21 +425,17 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 {
     NSMutableString *string = [NSMutableString string];
 
-    dispatch_sync(self.logQueue, ^{
-        [self updateFromASL];
-        
-        char fdate[24];
-        for (BSKLogMessage *msg in self.consoleMessages) {
-            if (dateStamps) {
-                time_t timestamp = (time_t) msg.timestamp;
-                struct tm *lt = localtime(&timestamp);
-                strftime(fdate, 24, "%Y-%m-%d %T", lt);
-                [string appendFormat:@"%s.%03d %@\n", fdate, (int) (1000.0 * (msg.timestamp - floor(msg.timestamp))), msg.message];
-            } else {
-                [string appendFormat:@"%@\n", msg.message];
-            }
+    char fdate[24];
+    for (BSKLogMessage *msg in self.consoleMessages) {
+        if (dateStamps) {
+            time_t timestamp = (time_t) msg.timestamp;
+            struct tm *lt = localtime(&timestamp);
+            strftime(fdate, 24, "%Y-%m-%d %T", lt);
+            [string appendFormat:@"%s.%03d %@\n", fdate, (int) (1000.0 * (msg.timestamp - floor(msg.timestamp))), msg.message];
+        } else {
+            [string appendFormat:@"%@\n", msg.message];
         }
-    });
+    }
     
     return string;
 }
@@ -506,7 +478,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 }
 
 // assumed to always be in logQueue
-- (void)updateFromASL
+- (BOOL)updateFromASL
 {
     pid_t myPID = getpid();
 
@@ -533,11 +505,48 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     aslresponse_free(r);
     asl_free(q);
 
-    if (foundNewEntries) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [NSNotificationCenter.defaultCenter postNotificationName:BSKNewLogMessageNotification object:nil];
-        });
-    }
+    return foundNewEntries;
+}
+
+- (UIImage *)consoleImageWithSize:(CGSize)size fontSize:(CGFloat)fontSize emptyBottomLine:(BOOL)emptyBottomLine
+{
+    NSUInteger characterLimit = (NSUInteger) ((size.width / (fontSize / 2.0f)) * (size.height / fontSize));
+    NSString *consoleText = [self currentConsoleLogWithDateStamps:NO];
+    if (consoleText.length > characterLimit) consoleText = [consoleText substringFromIndex:(consoleText.length - characterLimit)];
+
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+    paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+    paragraphStyle.alignment = NSTextAlignmentLeft;
+
+    NSDictionary *attributes = @{
+        NSFontAttributeName : [BugshotKit consoleFontWithSize:fontSize],
+        NSForegroundColorAttributeName : UIColor.blackColor,
+        NSParagraphStyleAttributeName : paragraphStyle,
+    };
+    
+    NSMutableAttributedString *attrString = [[NSMutableAttributedString alloc] initWithString:consoleText attributes:attributes];
+
+    NSStringDrawingContext *stringDrawingContext = [NSStringDrawingContext new];
+    stringDrawingContext.minimumScaleFactor = 1.0;
+
+    NSStringDrawingOptions options = (NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingTruncatesLastVisibleLine | NSStringDrawingUsesFontLeading);
+    
+    CGFloat padding = 2.0f;
+    CGSize renderSize = CGSizeMake(size.width - padding * 2.0f, size.height - padding * 2.0f);
+    if (emptyBottomLine) renderSize.height -= fontSize;
+    
+    return BSKImageWithDrawing(size, ^{
+        [UIColor.whiteColor setFill];
+        [[UIBezierPath bezierPathWithRect:CGRectMake(0, 0, size.width, size.height)] fill];
+        
+        CGRect stringRect = [attrString boundingRectWithSize:CGSizeMake(renderSize.width, MAXFLOAT) options:options context:stringDrawingContext];
+        
+        stringRect.origin = CGPointMake(padding, padding);
+        if (stringRect.size.height < renderSize.height) stringRect.size.height = renderSize.height;
+        else stringRect.origin.y -= (stringRect.size.height - renderSize.height);
+
+        [attrString drawWithRect:stringRect options:options context:stringDrawingContext];
+    });
 }
 
 #pragma mark - App Store build detection
