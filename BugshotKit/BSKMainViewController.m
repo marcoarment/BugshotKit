@@ -272,8 +272,19 @@ static UIImage *rotateIfNeeded(UIImage *src);
 
 - (void)sendButtonTapped:(id)sender
 {
+    if (self.includeLogToggle.on) {
+        [BugshotKit.sharedManager currentConsoleLogWithDateStamps:YES withCompletion:^(NSString *result) {
+            [self sendButtonTappedWithLog:result];
+        }];
+    }
+    else {
+        [self sendButtonTappedWithLog:nil];
+    }
+}
+
+- (void)sendButtonTappedWithLog:(NSString *)log
+{
     UIImage *screenshot = self.includeScreenshotToggle.on ? (BugshotKit.sharedManager.annotatedImage ?: BugshotKit.sharedManager.snapshotImage) : nil;
-    NSString *log = self.includeLogToggle.on ? [BugshotKit.sharedManager currentConsoleLogWithDateStamps:YES] : nil;
     if (log && ! log.length) log = nil;
     
     NSString *appNameString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
@@ -354,7 +365,9 @@ static UIImage *rotateIfNeeded(UIImage *src);
 - (void)updateLiveLog:(NSNotification *)n
 {
     if (! self.isViewLoaded) return;
-    [self.consoleView setBackgroundImage:[BugshotKit.sharedManager consoleImageWithSize:self.consoleView.bounds.size fontSize:7 emptyBottomLine:NO] forState:UIControlStateNormal];
+    [BugshotKit.sharedManager consoleImageWithSize:self.consoleView.bounds.size fontSize:7 emptyBottomLine:NO withCompletion:^(UIImage *image) {
+        [self.consoleView setBackgroundImage:image forState:UIControlStateNormal];
+    }];
 }
 
 @end
