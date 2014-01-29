@@ -262,13 +262,19 @@ static UIImage *rotateIfNeeded(UIImage *src);
 
 - (void)cancelButtonTapped:(id)sender
 {
-    if (self.sendingToServer) {
-        [self.urlSession invalidateAndCancel];
-    } else {
-        [self.navigationController.presentingViewController dismissViewControllerAnimated:YES completion:^{
-            if (self.delegate) [self.delegate mainViewControllerDidClose:self];
-        }];
-    }
+     if (self.sendingToServer) {
+         [self.urlSession invalidateAndCancel];
+     } else {
+         [self close];
+     }
+}
+
+- (void)close
+{
+    [self.navigationController.presentingViewController dismissViewControllerAnimated:YES completion:^{
+        if (self.delegate) [self.delegate mainViewControllerDidClose:self];
+    }];
+
 }
 
 - (void)consoleButtonTapped:(id)sender
@@ -377,14 +383,12 @@ static UIImage *rotateIfNeeded(UIImage *src);
         [request setHTTPBody:postData];
         
         NSURLSessionDataTask *postDataTask = [self.urlSession dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-            
             self.sendingToServer = NO;
             if (!error) {
                 NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
                 int code = (int)httpResponse.statusCode;
-                
                 if (code >= 200 && code <= 299) {
-                    [self cancelButtonTapped:nil];
+                    [self close];
                 } else {
                     dispatch_async(dispatch_get_main_queue(), ^{
                         NSString *responseString = [NSHTTPURLResponse localizedStringForStatusCode:httpResponse.statusCode];
@@ -410,7 +414,7 @@ static UIImage *rotateIfNeeded(UIImage *src);
 - (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
 {
     [self dismissViewControllerAnimated:YES completion:^{
-        if (result == MFMailComposeResultSaved || result == MFMailComposeResultSent) [self cancelButtonTapped:nil];
+        if (result == MFMailComposeResultSaved || result == MFMailComposeResultSent) [self close];
     }];
 }
 
