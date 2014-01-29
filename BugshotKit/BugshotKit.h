@@ -23,6 +23,11 @@ typedef enum : NSUInteger {
 	BSKInvocationGestureLongPress = (1 << 5),
 } BSKInvocationGestureMask;
 
+typedef enum {
+    BSKSendModeEmail    = 0,
+    BSKSendModeURL      = 1
+} BSKSendMode;
+
 @interface BugshotKit : NSObject <UIGestureRecognizerDelegate, BSKMainViewControllerDelegate>
 
 /*
@@ -31,6 +36,8 @@ typedef enum : NSUInteger {
     Optionally, multiple email addresses can be specified, separated by commas in the string.
 */
 + (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress;
+/* Or post bugshot to web server */
++ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackURL:(NSURL *)toURL headerFields:(NSDictionary *)headerFields parameters:(NSDictionary *)parameters;
 
 /* You can also always show it manually */
 + (void)show;
@@ -41,11 +48,15 @@ typedef enum : NSUInteger {
 + (void)addLogMessage:(NSString *)message;
 + (UIFont *)consoleFontWithSize:(CGFloat)size;
 
+@property (nonatomic) BSKSendMode sendMode;
 @property (nonatomic, copy) NSString *destinationEmailAddress;
+@property (nonatomic, copy) NSURL *destinationURL;
+@property (nonatomic, copy) NSDictionary *destinationURLHeaderFields;
 @property (nonatomic) NSUInteger consoleLogMaxLines;
 
 /*
     Every email has an info.json attachment with a serialized dictionary containing at least these keys:
+    (Every API call has JSON parameters from the same dictionary)
 
     @{
         @"appName" : @"Your App",
