@@ -23,6 +23,8 @@ static UIImage *rotateIfNeeded(UIImage *src);
 @property (nonatomic) UIImageView *consoleAccessoryView;
 @property (nonatomic) UILabel *screenshotLabel;
 @property (nonatomic) UILabel *consoleLabel;
+@property (nonatomic) NSURLSession *urlSession;
+@property (nonatomic) BOOL sendingToServer;
 @end
 
 @implementation BSKMainViewController
@@ -260,9 +262,19 @@ static UIImage *rotateIfNeeded(UIImage *src);
 
 - (void)cancelButtonTapped:(id)sender
 {
+     if (self.sendingToServer) {
+         [self.urlSession invalidateAndCancel];
+     } else {
+         [self close];
+     }
+}
+
+- (void)close
+{
     [self.navigationController.presentingViewController dismissViewControllerAnimated:YES completion:^{
         if (self.delegate) [self.delegate mainViewControllerDidClose:self];
     }];
+
 }
 
 - (void)consoleButtonTapped:(id)sender
@@ -311,32 +323,109 @@ static UIImage *rotateIfNeeded(UIImage *src);
     };
     
     NSData *userInfoJSON = [NSJSONSerialization dataWithJSONObject:userInfo options:NSJSONWritingPrettyPrinted error:NULL];
-    
-    MFMailComposeViewController *mf = [MFMailComposeViewController canSendMail] ? [[MFMailComposeViewController alloc] init] : nil;
-    if (! mf) {
-        NSString *msg = [NSString stringWithFormat:@"Mail is not configured on your %@.", UIDevice.currentDevice.localizedModel];
-        [[[UIAlertView alloc] initWithTitle:@"Cannot Send Mail" message:msg delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
-        return;
+   
+    if (BugshotKit.sharedManager.sendMode == BSKSendModeEmail) {
+        
+        MFMailComposeViewController *mf = [MFMailComposeViewController canSendMail] ? [[MFMailComposeViewController alloc] init] : nil;
+        if (! mf) {
+            NSString *msg = [NSString stringWithFormat:@"Mail is not configured on your %@.", UIDevice.currentDevice.localizedModel];
+            [[[UIAlertView alloc] initWithTitle:@"Cannot Send Mail" message:msg delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil] show];
+            return;
+        }
+        
+        mf.toRecipients = [BugshotKit.sharedManager.destinationEmailAddress componentsSeparatedByString:@","];
+        mf.subject = BugshotKit.sharedManager.emailSubjectBlock ? BugshotKit.sharedManager.emailSubjectBlock(userInfo) : [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
+        [mf setMessageBody:BugshotKit.sharedManager.emailBodyBlock ? BugshotKit.sharedManager.emailBodyBlock(userInfo) : nil isHTML:NO];
+        
+        if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(rotateIfNeeded(screenshot)) mimeType:@"image/png" fileName:@"screenshot.png"];
+        if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];
+        if (userInfoJSON) [mf addAttachmentData:userInfoJSON mimeType:@"application/json" fileName:@"info.json"];
+        
+        mf.mailComposeDelegate = self;
+        [self presentViewController:mf animated:YES completion:NULL];
+       
+        
+    } else if (BugshotKit.sharedManager.sendMode == BSKSendModeURL) {
+        
+        self.sendingToServer = YES;
+        
+        NSError *error;
+        NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+        if (self.urlSession) self.urlSession = nil;
+        self.urlSession = [NSURLSession sessionWithConfiguration:configuration];
+        
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:BugshotKit.sharedManager.destinationURL
+                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                           timeoutInterval:60.0];
+        
+        for (NSString *key in BugshotKit.sharedManager.destinationURLHeaderFields.allKeys) {
+            NSString *value = [BugshotKit.sharedManager.destinationURLHeaderFields valueForKey:key];
+            [request addValue:value forHTTPHeaderField:key];
+        }
+        [request addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPMethod:@"POST"];
+        
+        if (screenshot) {
+            NSData *screenshotData = UIImageJPEGRepresentation(rotateIfNeeded(screenshot), 1.0);
+            NSString *screenshotDataString = [self base64forData:screenshotData];
+            NSDictionary *screenshotInfo = @{@"screenshot": screenshotDataString};
+            userInfo = userInfo.mutableCopy;
+            [(NSMutableDictionary *)userInfo addEntriesFromDictionary:screenshotInfo];
+        }
+
+        if (log) {
+            NSDictionary *logInfo = @{@"log": log};
+            userInfo = userInfo.mutableCopy;
+            [(NSMutableDictionary *)userInfo addEntriesFromDictionary:logInfo];
+        }
+
+        NSData *postData = [NSJSONSerialization dataWithJSONObject:userInfo options:0 error:&error];
+        [request setHTTPBody:postData];
+        
+        NSURLSessionDataTask *postDataTask = [self.urlSession dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+            self.sendingToServer = NO;
+            if (!error) {
+                NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+                int code = (int)httpResponse.statusCode;
+                if (code >= 200 && code <= 299) {
+                    [self close];
+                } else {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        NSString *responseString = [NSHTTPURLResponse localizedStringForStatusCode:httpResponse.statusCode];
+                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:responseString delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+                        [alert show];
+                    });
+                }
+                
+            } else {
+                NSString *errorString = error.localizedDescription;
+                if (![errorString isEqualToString:@"cancelled"]) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Error" message:error.localizedDescription delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil];
+                        [alert show];
+                    });
+                }
+            }
+        }];
+        [postDataTask resume];
     }
-    
-    mf.toRecipients = [BugshotKit.sharedManager.destinationEmailAddress componentsSeparatedByString:@","];
-    mf.subject = BugshotKit.sharedManager.emailSubjectBlock ? BugshotKit.sharedManager.emailSubjectBlock(userInfo) : [NSString stringWithFormat:@"%@ %@ Feedback", appNameString, appVersionString];
-    [mf setMessageBody:BugshotKit.sharedManager.emailBodyBlock ? BugshotKit.sharedManager.emailBodyBlock(userInfo) : nil isHTML:NO];
-
-    if (screenshot) [mf addAttachmentData:UIImagePNGRepresentation(rotateIfNeeded(screenshot)) mimeType:@"image/png" fileName:@"screenshot.png"];
-    if (log) [mf addAttachmentData:[log dataUsingEncoding:NSUTF8StringEncoding] mimeType:@"text/plain" fileName:@"log.txt"];
-    if (userInfoJSON) [mf addAttachmentData:userInfoJSON mimeType:@"application/json" fileName:@"info.json"];
-
-    mf.mailComposeDelegate = self;
-    [self presentViewController:mf animated:YES completion:NULL];
 }
 
 - (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
 {
     [self dismissViewControllerAnimated:YES completion:^{
-        if (result == MFMailComposeResultSaved || result == MFMailComposeResultSent) [self cancelButtonTapped:nil];
+        if (result == MFMailComposeResultSaved || result == MFMailComposeResultSent) [self close];
     }];
 }
+
+- (void)setSendingToServer:(BOOL)sendingToServer
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        _sendingToServer = sendingToServer;
+        [self.tableView reloadRowsAtIndexPaths:[NSArray arrayWithObject:[NSIndexPath indexPathForItem:0 inSection:0]] withRowAnimation:UITableViewRowAnimationAutomatic];
+    });
+}
+
 
 #pragma mark - Table junk
 
@@ -349,13 +438,22 @@ static UIImage *rotateIfNeeded(UIImage *src);
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     cell.textLabel.textAlignment = NSTextAlignmentCenter;
     cell.textLabel.textColor = BugshotKit.sharedManager.annotationFillColor;
-    cell.textLabel.text = @"Compose Email…";
-
+    
+    switch (BugshotKit.sharedManager.sendMode) {
+        case BSKSendModeEmail:
+            cell.textLabel.text = @"Compose Email…";
+            break;
+        case BSKSendModeURL:
+            cell.textLabel.text = [NSString stringWithFormat:@"%@", self.sendingToServer ? @"Sending..." : @"Send"];
+            break;
+    }
+    
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (self.sendingToServer) return;
     [self sendButtonTapped:nil];
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
@@ -368,6 +466,41 @@ static UIImage *rotateIfNeeded(UIImage *src);
     [BugshotKit.sharedManager consoleImageWithSize:self.consoleView.bounds.size fontSize:7 emptyBottomLine:NO withCompletion:^(UIImage *image) {
         [self.consoleView setBackgroundImage:image forState:UIControlStateNormal];
     }];
+}
+
+
+#pragma mark - Encoding
+
+- (NSString*)base64forData:(NSData*)theData
+{
+    const uint8_t* input = (const uint8_t*)[theData bytes];
+    NSInteger length = [theData length];
+    
+    static char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    
+    NSMutableData* data = [NSMutableData dataWithLength:((length + 2) / 3) * 4];
+    uint8_t* output = (uint8_t*)data.mutableBytes;
+    
+    NSInteger i;
+    for (i=0; i < length; i += 3) {
+        NSInteger value = 0;
+        NSInteger j;
+        for (j = i; j < (i + 3); j++) {
+            value <<= 8;
+            
+            if (j < length) {
+                value |= (0xFF & input[j]);
+            }
+        }
+        
+        NSInteger theIndex = (i / 3) * 4;
+        output[theIndex + 0] =                    table[(value >> 18) & 0x3F];
+        output[theIndex + 1] =                    table[(value >> 12) & 0x3F];
+        output[theIndex + 2] = (i + 1) < length ? table[(value >> 6)  & 0x3F] : '=';
+        output[theIndex + 3] = (i + 2) < length ? table[(value >> 0)  & 0x3F] : '=';
+    }
+    
+    return [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
 }
 
 @end

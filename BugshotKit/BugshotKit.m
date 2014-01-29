@@ -65,18 +65,39 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     return sharedManager;
 }
 
-+ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress
++ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures;
 {
     if (BugshotKit.sharedManager.isDisabled) return;
     BugshotKit.sharedManager.invocationGestures = invocationGestures;
     BugshotKit.sharedManager.invocationGesturesTouchCount = fingerCount;
-    BugshotKit.sharedManager.destinationEmailAddress = toEmailAddress;
-    
+
     // dispatched to next main-thread loop so the app delegate has a chance to set up its window
     dispatch_async(dispatch_get_main_queue(), ^{
         [BugshotKit.sharedManager ensureWindow];
         [BugshotKit.sharedManager attachToWindow:BugshotKit.sharedManager.window];
     });
+}
+
++ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackEmailAddress:(NSString *)toEmailAddress
+{
+    if (BugshotKit.sharedManager.isDisabled) return;
+    BugshotKit.sharedManager.destinationEmailAddress = toEmailAddress;
+    BugshotKit.sharedManager.sendMode = BSKSendModeEmail;
+    [self enableWithNumberOfTouches:fingerCount performingGestures:invocationGestures];
+}
+
++ (void)enableWithNumberOfTouches:(NSUInteger)fingerCount performingGestures:(BSKInvocationGestureMask)invocationGestures feedbackURL:(NSURL *)toURL headerFields:(NSDictionary *)headerFields parameters:(NSDictionary *)parameters
+{
+    if (BugshotKit.sharedManager.isDisabled) return;
+    BugshotKit.sharedManager.destinationURL = toURL;
+    BugshotKit.sharedManager.destinationURLHeaderFields = headerFields;
+    if (parameters) {
+        [BugshotKit.sharedManager setExtraInfoBlock:^NSDictionary *{
+            return parameters;
+        }];
+    }
+    BugshotKit.sharedManager.sendMode = BSKSendModeURL;
+    [self enableWithNumberOfTouches:fingerCount performingGestures:invocationGestures];
 }
 
 + (void)show
