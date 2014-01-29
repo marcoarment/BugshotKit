@@ -23,15 +23,12 @@
                               feedbackURL:[NSURL URLWithString:@"my-api-url"]
                              headerFields:@{@"myFirstHeaderKeyForExampleAPIKey": @"myAPIKey"}
                                parameters:nil];
-    
-     */
-   
+    */
     /*
     [BugshotKit enableWithNumberOfTouches:2 performingGestures:(BSKInvocationGestureSwipeFromRightEdge | BSKInvocationGestureSwipeUp)
                               feedbackURL:[NSURL URLWithString:@"my-api-url"]
                              headerFields:@{@"username": @"myUsername", @"password": @"mypassword"}
                                parameters:@{@"param1": @"value1", @"param2": @"value2"}];
-    
     */
     
     return YES;
