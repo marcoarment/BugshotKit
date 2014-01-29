@@ -426,23 +426,28 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 
 #pragma mark - Console logging
 
-- (NSString *)currentConsoleLogWithDateStamps:(BOOL)dateStamps
+- (void)currentConsoleLogWithDateStamps:(BOOL)dateStamps
+                         withCompletion:(void (^)(NSString *result))completion
 {
-    NSMutableString *string = [NSMutableString string];
+    dispatch_async(self.logQueue, ^{
+        NSMutableString *string = [NSMutableString string];
 
-    char fdate[24];
-    for (BSKLogMessage *msg in self.consoleMessages) {
-        if (dateStamps) {
-            time_t timestamp = (time_t) msg.timestamp;
-            struct tm *lt = localtime(&timestamp);
-            strftime(fdate, 24, "%Y-%m-%d %T", lt);
-            [string appendFormat:@"%s.%03d %@\n", fdate, (int) (1000.0 * (msg.timestamp - floor(msg.timestamp))), msg.message];
-        } else {
-            [string appendFormat:@"%@\n", msg.message];
+        char fdate[24];
+        for (BSKLogMessage *msg in self.consoleMessages) {
+            if (dateStamps) {
+                time_t timestamp = (time_t) msg.timestamp;
+                struct tm *lt = localtime(&timestamp);
+                strftime(fdate, 24, "%Y-%m-%d %T", lt);
+                [string appendFormat:@"%s.%03d %@\n", fdate, (int) (1000.0 * (msg.timestamp - floor(msg.timestamp))), msg.message];
+            } else {
+                [string appendFormat:@"%@\n", msg.message];
+            }
         }
-    }
-    
-    return string;
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            completion(string);
+        });
+    });
 }
 
 - (void)clearLog
@@ -513,45 +518,49 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     return foundNewEntries;
 }
 
-- (UIImage *)consoleImageWithSize:(CGSize)size fontSize:(CGFloat)fontSize emptyBottomLine:(BOOL)emptyBottomLine
+- (void)consoleImageWithSize:(CGSize)size
+                    fontSize:(CGFloat)fontSize
+             emptyBottomLine:(BOOL)emptyBottomLine
+              withCompletion:(void (^)(UIImage *result))completion
 {
-    NSUInteger characterLimit = (NSUInteger) ((size.width / (fontSize / 2.0f)) * (size.height / fontSize));
-    NSString *consoleText = [self currentConsoleLogWithDateStamps:NO];
-    if (consoleText.length > characterLimit) consoleText = [consoleText substringFromIndex:(consoleText.length - characterLimit)];
+    [self currentConsoleLogWithDateStamps:NO withCompletion:^(NSString *consoleText) {
+        NSUInteger characterLimit = (NSUInteger) ((size.width / (fontSize / 2.0f)) * (size.height / fontSize));
+        if (consoleText.length > characterLimit) consoleText = [consoleText substringFromIndex:(consoleText.length - characterLimit)];
 
-    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-    paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
-    paragraphStyle.alignment = NSTextAlignmentLeft;
+        NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+        paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+        paragraphStyle.alignment = NSTextAlignmentLeft;
 
-    NSDictionary *attributes = @{
-        NSFontAttributeName : [BugshotKit consoleFontWithSize:fontSize],
-        NSForegroundColorAttributeName : UIColor.blackColor,
-        NSParagraphStyleAttributeName : paragraphStyle,
-    };
-    
-    NSMutableAttributedString *attrString = [[NSMutableAttributedString alloc] initWithString:consoleText attributes:attributes];
+        NSDictionary *attributes = @{
+                                     NSFontAttributeName : [BugshotKit consoleFontWithSize:fontSize],
+                                     NSForegroundColorAttributeName : UIColor.blackColor,
+                                     NSParagraphStyleAttributeName : paragraphStyle,
+                                     };
 
-    NSStringDrawingContext *stringDrawingContext = [NSStringDrawingContext new];
-    stringDrawingContext.minimumScaleFactor = 1.0;
+        NSMutableAttributedString *attrString = [[NSMutableAttributedString alloc] initWithString:consoleText attributes:attributes];
 
-    NSStringDrawingOptions options = (NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingTruncatesLastVisibleLine | NSStringDrawingUsesFontLeading);
-    
-    CGFloat padding = 2.0f;
-    CGSize renderSize = CGSizeMake(size.width - padding * 2.0f, size.height - padding * 2.0f);
-    if (emptyBottomLine) renderSize.height -= fontSize;
-    
-    return BSKImageWithDrawing(size, ^{
-        [UIColor.whiteColor setFill];
-        [[UIBezierPath bezierPathWithRect:CGRectMake(0, 0, size.width, size.height)] fill];
-        
-        CGRect stringRect = [attrString boundingRectWithSize:CGSizeMake(renderSize.width, MAXFLOAT) options:options context:stringDrawingContext];
-        
-        stringRect.origin = CGPointMake(padding, padding);
-        if (stringRect.size.height < renderSize.height) stringRect.size.height = renderSize.height;
-        else stringRect.origin.y -= (stringRect.size.height - renderSize.height);
+        NSStringDrawingContext *stringDrawingContext = [NSStringDrawingContext new];
+        stringDrawingContext.minimumScaleFactor = 1.0;
 
-        [attrString drawWithRect:stringRect options:options context:stringDrawingContext];
-    });
+        NSStringDrawingOptions options = (NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingTruncatesLastVisibleLine | NSStringDrawingUsesFontLeading);
+
+        CGFloat padding = 2.0f;
+        CGSize renderSize = CGSizeMake(size.width - padding * 2.0f, size.height - padding * 2.0f);
+        if (emptyBottomLine) renderSize.height -= fontSize;
+
+        completion(BSKImageWithDrawing(size, ^{
+            [UIColor.whiteColor setFill];
+            [[UIBezierPath bezierPathWithRect:CGRectMake(0, 0, size.width, size.height)] fill];
+
+            CGRect stringRect = [attrString boundingRectWithSize:CGSizeMake(renderSize.width, MAXFLOAT) options:options context:stringDrawingContext];
+
+            stringRect.origin = CGPointMake(padding, padding);
+            if (stringRect.size.height < renderSize.height) stringRect.size.height = renderSize.height;
+            else stringRect.origin.y -= (stringRect.size.height - renderSize.height);
+
+            [attrString drawWithRect:stringRect options:options context:stringDrawingContext];
+        }));
+    }];
 }
 
 #pragma mark - App Store build detection
@@ -563,7 +572,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 #endif
 
     // Adapted from https://github.com/blindsightcorp/BSMobileProvision
-    
+
     NSString *binaryMobileProvision = [NSString stringWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"embedded" ofType:@"mobileprovision"] encoding:NSISOLatin1StringEncoding error:NULL];
     if (! binaryMobileProvision) return YES; // no provision
 

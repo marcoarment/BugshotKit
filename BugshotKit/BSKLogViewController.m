@@ -62,7 +62,9 @@ static int markerNumber = 0;
 - (void)updateLiveLog:(NSNotification *)n
 {
     if (! self.isViewLoaded) return;
-    self.consoleView.image = [BugshotKit.sharedManager consoleImageWithSize:self.consoleView.bounds.size fontSize:(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? 13.0f : 9.0f) emptyBottomLine:YES];
+    [BugshotKit.sharedManager consoleImageWithSize:self.consoleView.bounds.size fontSize:(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? 13.0f : 9.0f) emptyBottomLine:YES withCompletion:^(UIImage *image) {
+        self.consoleView.image = image;
+    }];
 }
 
 
