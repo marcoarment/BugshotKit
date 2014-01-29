@@ -24,6 +24,8 @@
 		4C15DA6F188F491000767C78 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C15DA57188F491000767C78 /* UIImage+ImageEffects.m */; };
 		4C15DA70188F49AB00767C78 /* BugshotKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C15DA38188F48E400767C78 /* BugshotKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4C15DAA2188F563A00767C78 /* BSKWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 4C15DA54188F491000767C78 /* BSKWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A9AF1AA418995AA90025693B /* MABGTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = A9AF1AA218995AA90025693B /* MABGTimer.h */; };
+		A9AF1AA518995AA90025693B /* MABGTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = A9AF1AA318995AA90025693B /* MABGTimer.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -56,6 +58,8 @@
 		4C15DA55188F491000767C78 /* BSKWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKWindow.m; sourceTree = "<group>"; };
 		4C15DA56188F491000767C78 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
 		4C15DA57188F491000767C78 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
+		A9AF1AA218995AA90025693B /* MABGTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MABGTimer.h; sourceTree = "<group>"; };
+		A9AF1AA318995AA90025693B /* MABGTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MABGTimer.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +128,8 @@
 				4C15DA55188F491000767C78 /* BSKWindow.m */,
 				4C15DA56188F491000767C78 /* UIImage+ImageEffects.h */,
 				4C15DA57188F491000767C78 /* UIImage+ImageEffects.m */,
+				A9AF1AA218995AA90025693B /* MABGTimer.h */,
+				A9AF1AA318995AA90025693B /* MABGTimer.m */,
 				4C15DA36188F48E400767C78 /* Supporting Files */,
 			);
 			path = BugshotKit;
@@ -145,6 +151,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C15DA70188F49AB00767C78 /* BugshotKit.h in Headers */,
+				A9AF1AA418995AA90025693B /* MABGTimer.h in Headers */,
 				4C15DA64188F491000767C78 /* BSKMainViewController.h in Headers */,
 				4C15DAA2188F563A00767C78 /* BSKWindow.h in Headers */,
 			);
@@ -242,6 +249,7 @@
 				4C15DA59188F491000767C78 /* BSKAnnotationArrowView.m in Sources */,
 				4C15DA5B188F491000767C78 /* BSKAnnotationBlurView.m in Sources */,
 				4C15DA65188F491000767C78 /* BSKMainViewController.m in Sources */,
+				A9AF1AA518995AA90025693B /* MABGTimer.m in Sources */,
 				4C15DA69188F491000767C78 /* BSKScreenshotViewController.m in Sources */,
 				4C15DA67188F491000767C78 /* BSKNavigationController.m in Sources */,
 				4C15DA3A188F48E400767C78 /* BugshotKit.m in Sources */,

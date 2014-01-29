@@ -32,16 +32,16 @@
 
 typedef enum
 {
-    MABGTimerCoalesce, // subsequent calls with charged timer can only reduce the time until firing, not extend; default value
-    MABGTimerDelay // subsequent calls replace the existing time, potentially extending it
-} MABGTimerBehavior;
+    BSK_MABGTimerCoalesce, // subsequent calls with charged timer can only reduce the time until firing, not extend; default value
+    BSK_MABGTimerDelay // subsequent calls replace the existing time, potentially extending it
+} BSK_MABGTimerBehavior;
 
-@interface MABGTimer : NSObject
+@interface BSK_MABGTimer : NSObject
 {
     __unsafe_unretained id _obj;
     dispatch_queue_t _queue;
     dispatch_source_t _timer;
-    MABGTimerBehavior _behavior;
+    BSK_MABGTimerBehavior _behavior;
     NSTimeInterval _nextFireTime;
 }
 
@@ -49,7 +49,7 @@ typedef enum
 @property (mt_dispatch_strong, readonly) dispatch_queue_t queue;
 
 - (id)initWithObject:(id)obj;
-- (id)initWithObject:(id)obj behavior:(MABGTimerBehavior)behavior queueLabel:(char const *)queueLabel;
+- (id)initWithObject:(id)obj behavior:(BSK_MABGTimerBehavior)behavior queueLabel:(char const *)queueLabel;
 
 - (void)setTargetQueue: (dispatch_queue_t)target;
 - (void)afterDelay: (NSTimeInterval)delay do: (void (^)(id self))block;

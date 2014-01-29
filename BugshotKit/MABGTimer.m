@@ -13,16 +13,16 @@
 
 
 
-@implementation MABGTimer
+@implementation BSK_MABGTimer
 @synthesize obj = _obj;
 @synthesize queue = _queue;
 
 - (id)initWithObject: (id)obj
 {
-    return [self initWithObject: obj behavior: MABGTimerCoalesce queueLabel:"com.mikeash.MABGTimer"];
+    return [self initWithObject: obj behavior: BSK_MABGTimerCoalesce queueLabel:"com.mikeash.MABGTimer"];
 }
 
-- (id)initWithObject: (id)obj behavior: (MABGTimerBehavior)behavior queueLabel:(char const *)queueLabel
+- (id)initWithObject: (id)obj behavior: (BSK_MABGTimerBehavior)behavior queueLabel:(char const *)queueLabel
 {
     if((self = [super init]))
     {
@@ -101,9 +101,9 @@
         BOOL shouldProceed = NO;
         if (!hasTimer)
             shouldProceed = YES;
-        else if (_behavior == MABGTimerDelay)
+        else if (_behavior == BSK_MABGTimerDelay)
             shouldProceed = YES;
-        else if (_behavior == MABGTimerCoalesce && [self _now] + adjustedDelay < _nextFireTime)
+        else if (_behavior == BSK_MABGTimerCoalesce && [self _now] + adjustedDelay < _nextFireTime)
             shouldProceed = YES;
         
         if(shouldProceed)

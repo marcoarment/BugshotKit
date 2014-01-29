@@ -46,7 +46,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 @property (nonatomic) NSMutableArray *consoleMessages;
 
 @property (nonatomic) dispatch_queue_t logQueue;
-@property (nonatomic) MABGTimer *consoleRefreshThrottler;
+@property (nonatomic) BSK_MABGTimer *consoleRefreshThrottler;
 
 @property (nonatomic) BSKInvocationGestureMask invocationGestures;
 @property (nonatomic) NSUInteger invocationGesturesTouchCount;
@@ -155,7 +155,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         
         self.consoleLogMaxLines = 500;
         
-        self.consoleRefreshThrottler = [[MABGTimer alloc] initWithObject:self behavior:MABGTimerCoalesce queueLabel:"BugshotKit console throttler"];
+        self.consoleRefreshThrottler = [[BSK_MABGTimer alloc] initWithObject:self behavior:BSK_MABGTimerCoalesce queueLabel:"BugshotKit console throttler"];
         [self.consoleRefreshThrottler setTargetQueue:self.logQueue];
         
         [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(newWindowDidBecomeVisible:) name:UIWindowDidBecomeVisibleNotification object:nil];
