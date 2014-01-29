@@ -41,6 +41,7 @@ typedef enum : NSUInteger {
 + (void)addLogMessage:(NSString *)message;
 + (UIFont *)consoleFontWithSize:(CGFloat)size;
 
+@property (nonatomic, strong) void(^confirmationBlock)(void (^confirmedBlock)(BOOL shouldShow));
 @property (nonatomic, copy) NSString *destinationEmailAddress;
 @property (nonatomic) NSUInteger consoleLogMaxLines;
 

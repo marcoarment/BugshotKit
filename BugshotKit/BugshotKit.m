@@ -38,6 +38,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     dispatch_source_t source;
 }
 @property (nonatomic) BOOL isShowing;
+@property (nonatomic) BOOL isConfirming;
 @property (nonatomic) BOOL isDisabled;
 @property (nonatomic, weak) UIWindow *window;
 @property (nonatomic) NSMapTable *windowsWithGesturesAttached;
@@ -350,6 +351,23 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 }
 
 - (void)handleOpenGesture:(UIGestureRecognizer *)sender
+{
+    if (self.confirmationBlock) {
+        if (self.isConfirming) return;
+        self.isConfirming = YES;
+        self.confirmationBlock(^(BOOL shouldShow){
+            self.isConfirming = NO;
+            if (shouldShow) {
+                [self handleOpenGesturePostConfirmation:sender];
+            }
+        });
+    }
+    else {
+        [self handleOpenGesturePostConfirmation:sender];
+    }
+}
+
+- (void)handleOpenGesturePostConfirmation:(UIGestureRecognizer *)sender
 {
     if (self.isShowing) return;
 
