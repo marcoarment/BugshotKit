@@ -53,6 +53,9 @@
     [self.annotationStrokeColor setStroke];
     bezierPath.lineWidth = _strokeWidth;
     [bezierPath stroke];
+    
+    CGPathRelease(roundRectPath);
+    CGPathRelease(thickStrokePath);
 }
 
 - (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
