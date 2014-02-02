@@ -5,7 +5,7 @@ Pod::Spec.new do |s|
   s.homepage = 'https://github.com/marcoarment/BugshotKit'
   s.license = { :type => 'MIT', :file => 'LICENSE' }
   s.author = { 'Marco Arment' => 'arment@marco.org' }
-  s.source = { :git => 'https://github.com/marcoarment/BugshotKit.git' }
+  s.source = { :git => 'https://github.com/marcoarment/BugshotKit.git', :tag => s.version.to_s }
   s.source_files  = 'BugshotKit/*.{h,m}'
   s.resource  = [ 'Resources/*' ]
   s.requires_arc = true
