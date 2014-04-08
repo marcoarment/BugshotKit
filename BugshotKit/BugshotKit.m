@@ -95,7 +95,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BugshotKit.sharedManager.emailSubjectBlock = emailSubjectBlock;
 }
 
-+ (void)setEmailBodyBlock:(NSString *(^)(NSDictionary *))emailBodyBlock;
++ (void)setEmailBodyBlock:(NSString *(^)(NSDictionary *))emailBodyBlock
 {
     BugshotKit.sharedManager.emailBodyBlock = emailBodyBlock;
 }
