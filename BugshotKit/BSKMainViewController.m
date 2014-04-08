@@ -261,7 +261,7 @@ static UIImage *rotateIfNeeded(UIImage *src);
 - (void)cancelButtonTapped:(id)sender
 {
     [self.navigationController.presentingViewController dismissViewControllerAnimated:YES completion:^{
-        if (self.delegate) [self.delegate mainViewControllerDidClose:self];
+        [self.delegate mainViewControllerDidClose:self];
     }];
 }
 

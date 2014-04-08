@@ -191,12 +191,13 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 
 - (void)ensureWindow
 {
-    if (self.window) return;
+    UIWindow *window = self.window;
+    if (window) return;
     
     self.window = UIApplication.sharedApplication.keyWindow;
-    if (! self.window) self.window = UIApplication.sharedApplication.windows.lastObject;
-    if (! self.window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
-    if (! self.window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
+    if (! window) self.window = UIApplication.sharedApplication.windows.lastObject;
+    if (! window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
+    if (! window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
 
     // The purpose of this is to immediately get rejected from App Store submissions in case you accidentally submit an app with BugshotKit.
     // BugshotKit is only meant to be used during development and beta testing. Do not ship it in App Store builds.
@@ -205,7 +206,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     if ([UIEvent.class instancesRespondToSelector:@selector(_gsEvent)] &&
         [UIViewController.class instancesRespondToSelector:@selector(attentionClassDumpUser:yesItsUsAgain:althoughSwizzlingAndOverridingPrivateMethodsIsFun:itWasntMuchFunWhenYourAppStoppedWorking:pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:)]) {
         // I can't believe I actually had a reason to call this method.
-        [self.window.rootViewController attentionClassDumpUser:nil yesItsUsAgain:nil althoughSwizzlingAndOverridingPrivateMethodsIsFun:nil itWasntMuchFunWhenYourAppStoppedWorking:nil pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:nil];
+        [window.rootViewController attentionClassDumpUser:nil yesItsUsAgain:nil althoughSwizzlingAndOverridingPrivateMethodsIsFun:nil itWasntMuchFunWhenYourAppStoppedWorking:nil pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:nil];
     }
 #pragma clang diagnostic pop
 }
@@ -327,33 +328,42 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 
 - (void)leftEdgePanGesture:(UIScreenEdgePanGestureRecognizer *)egr
 {
-    if ([egr translationInView:self.window].x < 60) return;
-    if (self.window.rootViewController.interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown) [self handleOpenGesture:egr];
+    UIWindow *window = self.window;
+
+    if ([egr translationInView:window].x < 60) return;
+    if (window.rootViewController.interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown) [self handleOpenGesture:egr];
 }
 
 - (void)rightEdgePanGesture:(UIScreenEdgePanGestureRecognizer *)egr
 {
-    if ([egr translationInView:self.window].x > -60) return;
-    if (self.window.rootViewController.interfaceOrientation == UIInterfaceOrientationPortrait) [self handleOpenGesture:egr];
+    UIWindow *window = self.window;
+
+    if ([egr translationInView:window].x > -60) return;
+    if (window.rootViewController.interfaceOrientation == UIInterfaceOrientationPortrait) [self handleOpenGesture:egr];
 }
 
 - (void)topEdgePanGesture:(UIScreenEdgePanGestureRecognizer *)egr
 {
-    if ([egr translationInView:self.window].y < 60) return;
-    if (self.window.rootViewController.interfaceOrientation == UIInterfaceOrientationLandscapeLeft) [self handleOpenGesture:egr];
+    UIWindow *window = self.window;
+
+    if ([egr translationInView:window].y < 60) return;
+    if (window.rootViewController.interfaceOrientation == UIInterfaceOrientationLandscapeLeft) [self handleOpenGesture:egr];
 }
 
 - (void)bottomEdgePanGesture:(UIScreenEdgePanGestureRecognizer *)egr
 {
-    if ([egr translationInView:self.window].y > -60) return;
-    if (self.window.rootViewController.interfaceOrientation == UIInterfaceOrientationLandscapeRight) [self handleOpenGesture:egr];
+    UIWindow *window = self.window;
+
+    if ([egr translationInView:window].y > -60) return;
+    if (window.rootViewController.interfaceOrientation == UIInterfaceOrientationLandscapeRight) [self handleOpenGesture:egr];
 }
 
 - (void)handleOpenGesture:(UIGestureRecognizer *)sender
 {
     if (self.isShowing) return;
 
-    UIInterfaceOrientation interfaceOrientation = self.window.rootViewController.interfaceOrientation;
+    UIWindow *window = self.window;
+    UIInterfaceOrientation interfaceOrientation = window.rootViewController.interfaceOrientation;
     
     if (sender && [sender isKindOfClass:UISwipeGestureRecognizer.class]) {
         UISwipeGestureRecognizer *sgr = (UISwipeGestureRecognizer *)sender;
@@ -378,7 +388,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 
     self.isShowing = YES;
 
-    UIGraphicsBeginImageContextWithOptions(self.window.bounds.size, NO, UIScreen.mainScreen.scale);
+    UIGraphicsBeginImageContextWithOptions(window.bounds.size, NO, UIScreen.mainScreen.scale);
     
     NSMutableSet *drawnWindows = [NSMutableSet set];
     for (UIWindow *window in UIApplication.sharedApplication.windows) {
@@ -405,12 +415,12 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         )];
     }
 
-    UIViewController *presentingViewController = self.window.rootViewController;
+    UIViewController *presentingViewController = window.rootViewController;
     while (presentingViewController.presentedViewController) presentingViewController = presentingViewController.presentedViewController;
     
     BSKMainViewController *mvc = [[BSKMainViewController alloc] init];
     mvc.delegate = self;
-    BSKNavigationController *nc = [[BSKNavigationController alloc] initWithRootViewController:mvc lockedToRotation:self.window.rootViewController.interfaceOrientation];
+    BSKNavigationController *nc = [[BSKNavigationController alloc] initWithRootViewController:mvc lockedToRotation:window.rootViewController.interfaceOrientation];
     nc.navigationBar.tintColor = BugshotKit.sharedManager.annotationFillColor;
     
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
