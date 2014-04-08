@@ -194,10 +194,12 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     UIWindow *window = self.window;
     if (window) return;
     
-    self.window = UIApplication.sharedApplication.keyWindow;
-    if (! window) self.window = UIApplication.sharedApplication.windows.lastObject;
+    window = UIApplication.sharedApplication.keyWindow;
+    if (! window) window = UIApplication.sharedApplication.windows.lastObject;
     if (! window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
     if (! window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
+
+    self.window = window;
 
     // The purpose of this is to immediately get rejected from App Store submissions in case you accidentally submit an app with BugshotKit.
     // BugshotKit is only meant to be used during development and beta testing. Do not ship it in App Store builds.
