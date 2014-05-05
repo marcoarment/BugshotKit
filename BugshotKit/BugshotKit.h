@@ -73,6 +73,12 @@ typedef enum : NSUInteger {
  */
 + (void)setEmailBodyBlock:(NSString *(^)(NSDictionary *))emailBodyBlock;
 
+/*
+ You can optionally customize the mail compose view controller by setting an mailComposeCustomizeBlock.
+ 
+ Use this block e.g. for adding file attachments to the e-mail being sent.
+ */
++ (void)setMailComposeCustomizeBlock:(void (^)(MFMailComposeViewController *mailComposer))mailComposeCustomizeBlock;
 
 // feel free to mess with these if you want
 
@@ -94,6 +100,7 @@ typedef enum : NSUInteger {
 @property (nonatomic, copy) NSArray *annotations;
 @property (nonatomic, strong) UIImage *annotatedImage;
 @property (nonatomic, copy) NSDictionary *(^extraInfoBlock)();
+@property (nonatomic, copy) void (^mailComposeCustomizeBlock)(MFMailComposeViewController *mailComposer);
 @property (nonatomic, copy) NSString *(^emailSubjectBlock)(NSDictionary *info);
 @property (nonatomic, copy) NSString *(^emailBodyBlock)(NSDictionary *info);
 

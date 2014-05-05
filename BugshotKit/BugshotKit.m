@@ -100,6 +100,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BugshotKit.sharedManager.emailBodyBlock = emailBodyBlock;
 }
 
++ (void)setMailComposeCustomizeBlock:(void (^)(MFMailComposeViewController *mailComposer))mailComposeCustomizeBlock
+{
+    BugshotKit.sharedManager.mailComposeCustomizeBlock = mailComposeCustomizeBlock;
+}
+
 + (UIFont *)consoleFontWithSize:(CGFloat)size
 {
     static dispatch_once_t onceToken;
