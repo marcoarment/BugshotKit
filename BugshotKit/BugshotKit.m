@@ -216,7 +216,10 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 - (void)newWindowDidBecomeVisible:(NSNotification *)n
 {
     UIWindow *newWindow = (UIWindow *) n.object;
+    NSString *className = NSStringFromClass(newWindow.class);
     if (! newWindow || ! [newWindow isKindOfClass:UIWindow.class]) return;
+    if ([className rangeOfString:@"Snapshot"].location != NSNotFound) return; // triggered by [UIView snapshotViewAfterScreenUpdates:]
+
     [self attachToWindow:newWindow];
 }
 
