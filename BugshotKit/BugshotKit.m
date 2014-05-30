@@ -39,6 +39,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 }
 @property (nonatomic) BOOL isShowing;
 @property (nonatomic) BOOL isDisabled;
+@property (nonatomic, weak) BSKNavigationController *presentedNavigationController;
 @property (nonatomic, weak) UIWindow *window;
 @property (nonatomic) NSMapTable *windowsWithGesturesAttached;
 
@@ -416,9 +417,20 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BSKMainViewController *mvc = [[BSKMainViewController alloc] init];
     mvc.delegate = self;
     BSKNavigationController *nc = [[BSKNavigationController alloc] initWithRootViewController:mvc lockedToRotation:self.window.rootViewController.interfaceOrientation];
+    self.presentedNavigationController = nc;
     nc.navigationBar.tintColor = BugshotKit.sharedManager.annotationFillColor;
-    
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
+}
+
++ (void)dismissAninmated:(BOOL)animated completion:(void(^)())completion
+{
+    UIViewController *presentingVC = BugshotKit.sharedManager.presentedNavigationController.presentingViewController;
+    if (presentingVC) {
+        [presentingVC dismissViewControllerAnimated:animated completion:completion];
+        [BugshotKit.sharedManager mainViewControllerDidClose:nil];
+    } else {
+        if (completion) completion();
+    }
 }
 
 - (void)mainViewControllerDidClose:(BSKMainViewController *)mainViewController
