@@ -156,6 +156,8 @@
 
     BugshotKit.sharedManager.annotations = savedAnnotations;
     BugshotKit.sharedManager.annotatedImage = annotatedImage;
+
+    [super viewWillDisappear:animated];    
 }
 
 - (void)contentAreaTapped:(UITapGestureRecognizer *)sender
