@@ -526,7 +526,10 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         foundNewEntries = YES;
         
         NSTimeInterval msgTime = (NSTimeInterval) atol(asl_get(m, ASL_KEY_TIME)) + ((NSTimeInterval) atol(asl_get(m, ASL_KEY_TIME_NSEC)) / 1000000000.0);
-        [self addLogMessage:[NSString stringWithUTF8String:asl_get(m, ASL_KEY_MSG)] timestamp:msgTime];
+
+        const char *msg = asl_get(m, ASL_KEY_MSG);
+        if (msg == NULL) { continue; }
+        [self addLogMessage:[NSString stringWithUTF8String:msg] timestamp:msgTime];
     }
     
     aslresponse_free(r);
