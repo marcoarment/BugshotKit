@@ -113,7 +113,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     dispatch_once(&onceToken, ^{
         consoleFontName = nil;
 
-        NSData *inData = [NSData dataWithContentsOfFile:[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Inconsolata.otf"]];
+        NSData *inData = [NSData dataWithContentsOfFile:[[NSBundle bundleForClass:[self class]].resourcePath stringByAppendingPathComponent:@"Inconsolata.otf"]];
         if (inData) {
             CFErrorRef error;
             CGDataProviderRef provider = CGDataProviderCreateWithCFData((CFDataRef)inData);
