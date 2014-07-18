@@ -98,7 +98,7 @@ If you use BugshotKit, please consider supporting my bill-paying projects:
 
 * [Marco.org](http://www.marco.org/)
 * [Accidental Tech Podcast](http://atp.fm/)
-* [Overcast](http://overcast.fm/) (coming soon)
+* [Overcast](http://overcast.fm/)
 
 Thanks.
 
