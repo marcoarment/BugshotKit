@@ -106,6 +106,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BugshotKit.sharedManager.mailComposeCustomizeBlock = mailComposeCustomizeBlock;
 }
 
++ (void)setDisplayConsoleTextInLogViewer:(BOOL)displayText
+{
+    BugshotKit.sharedManager.displayConsoleTextInLogViewer = displayText;
+}
+
 + (UIFont *)consoleFontWithSize:(CGFloat)size
 {
     static dispatch_once_t onceToken;

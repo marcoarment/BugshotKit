@@ -81,6 +81,13 @@ typedef enum : NSUInteger {
  */
 + (void)setMailComposeCustomizeBlock:(void (^)(MFMailComposeViewController *mailComposer))mailComposeCustomizeBlock;
 
+/*
+ You can display the console log viewer as selectable text. Defaults to NO which presents a screenshot of the log text.
+
+ @param displayText YES if the console log should be displayed as selectable text. NO if it should use a screenshot.
+ */
++ (void)setDisplayConsoleTextInLogViewer:(BOOL)displayText;
+
 // feel free to mess with these if you want
 
 - (void)currentConsoleLogWithDateStamps:(BOOL)dateStamps
@@ -90,6 +97,8 @@ typedef enum : NSUInteger {
              emptyBottomLine:(BOOL)emptyBottomLine
               withCompletion:(void (^)(UIImage *result))completion;
 
+
+@property (nonatomic) BOOL displayConsoleTextInLogViewer;
 @property (nonatomic, strong) UIColor *annotationFillColor;
 @property (nonatomic, strong) UIColor *annotationStrokeColor;
 @property (nonatomic, strong) UIColor *toggleOnColor;
