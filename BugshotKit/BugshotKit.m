@@ -39,6 +39,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 }
 @property (nonatomic) BOOL isShowing;
 @property (nonatomic) BOOL isDisabled;
+@property (nonatomic, weak) BSKNavigationController *presentedNavigationController;
 @property (nonatomic, weak) UIWindow *window;
 @property (nonatomic) NSMapTable *windowsWithGesturesAttached;
 
@@ -105,6 +106,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BugshotKit.sharedManager.mailComposeCustomizeBlock = mailComposeCustomizeBlock;
 }
 
++ (void)setDisplayConsoleTextInLogViewer:(BOOL)displayText
+{
+    BugshotKit.sharedManager.displayConsoleTextInLogViewer = displayText;
+}
+
 + (UIFont *)consoleFontWithSize:(CGFloat)size
 {
     static dispatch_once_t onceToken;
@@ -112,7 +118,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     dispatch_once(&onceToken, ^{
         consoleFontName = nil;
 
-        NSData *inData = [NSData dataWithContentsOfFile:[NSBundle.mainBundle.resourcePath stringByAppendingPathComponent:@"Inconsolata.otf"]];
+        NSData *inData = [NSData dataWithContentsOfFile:[[NSBundle bundleForClass:[self class]].resourcePath stringByAppendingPathComponent:@"Inconsolata.otf"]];
         if (inData) {
             CFErrorRef error;
             CGDataProviderRef provider = CGDataProviderCreateWithCFData((CFDataRef)inData);
@@ -431,9 +437,20 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BSKMainViewController *mvc = [[BSKMainViewController alloc] init];
     mvc.delegate = self;
     BSKNavigationController *nc = [[BSKNavigationController alloc] initWithRootViewController:mvc lockedToRotation:window.rootViewController.interfaceOrientation];
+    self.presentedNavigationController = nc;
     nc.navigationBar.tintColor = BugshotKit.sharedManager.annotationFillColor;
-    
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
+}
+
++ (void)dismissAninmated:(BOOL)animated completion:(void(^)())completion
+{
+    UIViewController *presentingVC = BugshotKit.sharedManager.presentedNavigationController.presentingViewController;
+    if (presentingVC) {
+        [presentingVC dismissViewControllerAnimated:animated completion:completion];
+        [BugshotKit.sharedManager mainViewControllerDidClose:nil];
+    } else {
+        if (completion) completion();
+    }
 }
 
 - (void)mainViewControllerDidClose:(BSKMainViewController *)mainViewController
@@ -529,7 +546,10 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         foundNewEntries = YES;
         
         NSTimeInterval msgTime = (NSTimeInterval) atol(asl_get(m, ASL_KEY_TIME)) + ((NSTimeInterval) atol(asl_get(m, ASL_KEY_TIME_NSEC)) / 1000000000.0);
-        [self addLogMessage:[NSString stringWithUTF8String:asl_get(m, ASL_KEY_MSG)] timestamp:msgTime];
+
+        const char *msg = asl_get(m, ASL_KEY_MSG);
+        if (msg == NULL) { continue; }
+        [self addLogMessage:[NSString stringWithUTF8String:msg] timestamp:msgTime];
     }
     
     aslresponse_free(r);
