@@ -520,8 +520,15 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     q = asl_new(ASL_TYPE_QUERY);
     aslresponse r = asl_search(NULL, q);
     BOOL foundNewEntries = NO;
-    
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    // The deprecation attribute incorrectly states that the replacement method, asl_next()
+    // is available in __IPHONE_7_0; asl_next() first appears in __IPHONE_8_0.
+    // This would require both a compile and runtime check to properly implement the new method
+    // while the minimum deployment target for this project remains iOS 7.0.
     while ( (m = aslresponse_next(r)) ) {
+#pragma clang diagnostic pop
         if (myPID != atol(asl_get(m, ASL_KEY_PID))) continue;
 
         // dupe checking
@@ -536,8 +543,15 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         if (msg == NULL) { continue; }
         [self addLogMessage:[NSString stringWithUTF8String:msg] timestamp:msgTime];
     }
-    
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    // The deprecation attribute incorrectly states that the replacement method, asl_release()
+    // is available in __IPHONE_7_0; asl_release() first appears in __IPHONE_8_0.
+    // This would require both a compile and runtime check to properly implement the new method
+    // while the minimum deployment target for this project remains iOS 7.0.
     aslresponse_free(r);
+#pragma clang diagnostic pop
     asl_free(q);
 
     return foundNewEntries;
