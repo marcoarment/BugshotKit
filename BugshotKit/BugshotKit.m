@@ -509,6 +509,14 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     }
 }
 
+// Because aslresponse_next is now deprecated.
+asl_object_t SystemSafeASLNext(asl_object_t r) {
+    if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f) {
+        return asl_next(r);
+    }
+    return aslresponse_next(r);
+}
+
 // assumed to always be in logQueue
 - (BOOL)updateFromASL
 {
@@ -521,7 +529,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     aslresponse r = asl_search(NULL, q);
     BOOL foundNewEntries = NO;
     
-    while ( (m = asl_next(r)) ) {
+    while ( (m = SystemSafeASLNext(r)) ) {
         if (myPID != atol(asl_get(m, ASL_KEY_PID))) continue;
 
         // dupe checking
@@ -537,7 +545,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         [self addLogMessage:[NSString stringWithUTF8String:msg] timestamp:msgTime];
     }
     
-    asl_release(r);
+    if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f) {
+        asl_release(r);
+    } else {
+        aslresponse_free(r);
+    }
     asl_free(q);
 
     return foundNewEntries;
