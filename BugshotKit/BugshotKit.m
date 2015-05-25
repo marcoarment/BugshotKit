@@ -427,8 +427,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
 }
 
-+ (void)dismissAninmated:(BOOL)animated completion:(void(^)())completion
-{
++ (void)dismissAnimated:(BOOL)animated completion:(void(^)())completion {
     UIViewController *presentingVC = BugshotKit.sharedManager.presentedNavigationController.presentingViewController;
     if (presentingVC) {
         [presentingVC dismissViewControllerAnimated:animated completion:completion];
