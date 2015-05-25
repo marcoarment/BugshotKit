@@ -514,7 +514,14 @@ asl_object_t SystemSafeASLNext(asl_object_t r) {
     if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f) {
         return asl_next(r);
     }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    // The deprecation attribute incorrectly states that the replacement method, asl_next()
+    // is available in __IPHONE_7_0; asl_next() first appears in __IPHONE_8_0.
+    // This would require both a compile and runtime check to properly implement the new method
+    // while the minimum deployment target for this project remains iOS 7.0.
     return aslresponse_next(r);
+#pragma clang diagnostic pop
 }
 
 // assumed to always be in logQueue
@@ -548,7 +555,14 @@ asl_object_t SystemSafeASLNext(asl_object_t r) {
     if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f) {
         asl_release(r);
     } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        // The deprecation attribute incorrectly states that the replacement method, asl_release()
+        // is available in __IPHONE_7_0; asl_release() first appears in __IPHONE_8_0.
+        // This would require both a compile and runtime check to properly implement the new method
+        // while the minimum deployment target for this project remains iOS 7.0.
         aslresponse_free(r);
+#pragma clang diagnostic pop
     }
     asl_free(q);
 
