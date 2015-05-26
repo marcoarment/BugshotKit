@@ -408,7 +408,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     self.snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
 
-    if (interfaceOrientation != UIInterfaceOrientationPortrait) {
+    if ([UIDevice currentDevice].systemVersion.floatValue < 8.0f && interfaceOrientation != UIInterfaceOrientationPortrait) {
         self.snapshotImage = [[UIImage alloc] initWithCGImage:self.snapshotImage.CGImage scale:UIScreen.mainScreen.scale orientation:(
             interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ? UIImageOrientationDown : (
                 interfaceOrientation == UIInterfaceOrientationLandscapeLeft ? UIImageOrientationRight : UIImageOrientationLeft
