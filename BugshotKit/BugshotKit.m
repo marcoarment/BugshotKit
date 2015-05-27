@@ -408,7 +408,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     self.snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
 
-    if (interfaceOrientation != UIInterfaceOrientationPortrait) {
+    if ([UIDevice currentDevice].systemVersion.floatValue < 8.0f && interfaceOrientation != UIInterfaceOrientationPortrait) {
         self.snapshotImage = [[UIImage alloc] initWithCGImage:self.snapshotImage.CGImage scale:UIScreen.mainScreen.scale orientation:(
             interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ? UIImageOrientationDown : (
                 interfaceOrientation == UIInterfaceOrientationLandscapeLeft ? UIImageOrientationRight : UIImageOrientationLeft
@@ -424,11 +424,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BSKNavigationController *nc = [[BSKNavigationController alloc] initWithRootViewController:mvc lockedToRotation:self.window.rootViewController.interfaceOrientation];
     self.presentedNavigationController = nc;
     nc.navigationBar.tintColor = BugshotKit.sharedManager.annotationFillColor;
+    nc.navigationBar.titleTextAttributes = @{ NSForegroundColorAttributeName:BugshotKit.sharedManager.annotationFillColor };
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
 }
 
-+ (void)dismissAninmated:(BOOL)animated completion:(void(^)())completion
-{
++ (void)dismissAnimated:(BOOL)animated completion:(void(^)())completion {
     UIViewController *presentingVC = BugshotKit.sharedManager.presentedNavigationController.presentingViewController;
     if (presentingVC) {
         [presentingVC dismissViewControllerAnimated:animated completion:completion];
@@ -509,6 +509,21 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     }
 }
 
+// Because aslresponse_next is now deprecated.
+asl_object_t SystemSafeASLNext(asl_object_t r) {
+    if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f) {
+        return asl_next(r);
+    }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    // The deprecation attribute incorrectly states that the replacement method, asl_next()
+    // is available in __IPHONE_7_0; asl_next() first appears in __IPHONE_8_0.
+    // This would require both a compile and runtime check to properly implement the new method
+    // while the minimum deployment target for this project remains iOS 7.0.
+    return aslresponse_next(r);
+#pragma clang diagnostic pop
+}
+
 // assumed to always be in logQueue
 - (BOOL)updateFromASL
 {
@@ -521,7 +536,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     aslresponse r = asl_search(NULL, q);
     BOOL foundNewEntries = NO;
     
-    while ( (m = aslresponse_next(r)) ) {
+    while ( (m = SystemSafeASLNext(r)) ) {
         if (myPID != atol(asl_get(m, ASL_KEY_PID))) continue;
 
         // dupe checking
@@ -537,7 +552,18 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         [self addLogMessage:[NSString stringWithUTF8String:msg] timestamp:msgTime];
     }
     
-    aslresponse_free(r);
+    if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f) {
+        asl_release(r);
+    } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        // The deprecation attribute incorrectly states that the replacement method, asl_release()
+        // is available in __IPHONE_7_0; asl_release() first appears in __IPHONE_8_0.
+        // This would require both a compile and runtime check to properly implement the new method
+        // while the minimum deployment target for this project remains iOS 7.0.
+        aslresponse_free(r);
+#pragma clang diagnostic pop
+    }
     asl_free(q);
 
     return foundNewEntries;
@@ -594,8 +620,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 {
 #if TARGET_IPHONE_SIMULATOR
     return NO;
-#endif
-
+#else
     // Adapted from https://github.com/blindsightcorp/BSMobileProvision
 
     NSString *binaryMobileProvision = [NSString stringWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"embedded" ofType:@"mobileprovision"] encoding:NSISOLatin1StringEncoding error:NULL];
@@ -618,6 +643,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     if (mobileProvision[@"ProvisionedDevices"] && ((NSDictionary *)mobileProvision[@"ProvisionedDevices"]).count) return NO; // development or ad-hoc
 
     return YES; // expected development/enterprise/ad-hoc entitlements not found
+#endif
 }
 
 
