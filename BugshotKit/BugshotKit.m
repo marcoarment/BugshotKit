@@ -86,6 +86,12 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     [BugshotKit.sharedManager handleOpenGesture:nil];
 }
 
++ (void)showWithImage:(UIImage *)image
+{
+    BugshotKit.sharedManager.snapshotImage = image;
+    [self show];
+}
+
 + (void)setExtraInfoBlock:(NSDictionary *(^)())extraInfoBlock
 {
     BugshotKit.sharedManager.extraInfoBlock = extraInfoBlock;
@@ -405,7 +411,9 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         [window.layer renderInContext:UIGraphicsGetCurrentContext()]; // drawViewHierarchyInRect: doesn't capture UIAlertView opacity properly
     }
 
-    self.snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
+    if (self.snapshotImage == nil) {
+        self.snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
+    }
     UIGraphicsEndImageContext();
 
     if ([UIDevice currentDevice].systemVersion.floatValue < 8.0f && interfaceOrientation != UIInterfaceOrientationPortrait) {

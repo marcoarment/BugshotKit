@@ -10,6 +10,8 @@
 #warning BugshotKit is being included in a non-debug build.
 #endif
 
+NS_ASSUME_NONNULL_BEGIN
+
 extern NSString * const BSKNewLogMessageNotification;
 
 
@@ -34,6 +36,7 @@ typedef enum : NSUInteger {
 
 /* You can also always show it manually */
 + (void)show;
++ (void)showWithImage:(UIImage *)image;
 + (void)dismissAnimated:(BOOL)animated completion:(void(^)())completion;
 
 + (instancetype)sharedManager;
@@ -106,7 +109,7 @@ typedef enum : NSUInteger {
 
 
 // don't mess with these
-@property (nonatomic, strong) UIImage *snapshotImage;
+@property (nonatomic, strong, nullable) UIImage *snapshotImage;
 @property (nonatomic, copy) NSArray *annotations;
 @property (nonatomic, strong) UIImage *annotatedImage;
 @property (nonatomic, copy) NSDictionary *(^extraInfoBlock)();
@@ -117,3 +120,5 @@ typedef enum : NSUInteger {
 @end
 
 UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)());
+
+NS_ASSUME_NONNULL_END
