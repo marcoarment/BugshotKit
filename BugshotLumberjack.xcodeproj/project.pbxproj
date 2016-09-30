@@ -1,0 +1,419 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6387324C1F92324A5A36212B /* Pods_BugshotLumberjack.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AC8B2A9B34015BCBB51AB11 /* Pods_BugshotLumberjack.framework */; };
+		CDDC3D941D9E6AB200FCB0EE /* BSKAnnotationArrowView.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D741D9E6AB200FCB0EE /* BSKAnnotationArrowView.m */; };
+		CDDC3D951D9E6AB200FCB0EE /* BSKAnnotationBlurView.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D761D9E6AB200FCB0EE /* BSKAnnotationBlurView.m */; };
+		CDDC3D961D9E6AB200FCB0EE /* BSKAnnotationBoxView.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D781D9E6AB200FCB0EE /* BSKAnnotationBoxView.m */; };
+		CDDC3D971D9E6AB200FCB0EE /* BSKAnnotationView.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D7A1D9E6AB200FCB0EE /* BSKAnnotationView.m */; };
+		CDDC3D981D9E6AB200FCB0EE /* BSKCheckerboardView.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D7C1D9E6AB200FCB0EE /* BSKCheckerboardView.m */; };
+		CDDC3D991D9E6AB200FCB0EE /* BSKLogViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D7E1D9E6AB200FCB0EE /* BSKLogViewController.m */; };
+		CDDC3D9A1D9E6AB200FCB0EE /* BSKMainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D801D9E6AB200FCB0EE /* BSKMainViewController.m */; };
+		CDDC3D9B1D9E6AB200FCB0EE /* BSKNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D821D9E6AB200FCB0EE /* BSKNavigationController.m */; };
+		CDDC3D9C1D9E6AB200FCB0EE /* BSKScreenshotViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D841D9E6AB200FCB0EE /* BSKScreenshotViewController.m */; };
+		CDDC3D9D1D9E6AB200FCB0EE /* BSKToggleButton.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D861D9E6AB200FCB0EE /* BSKToggleButton.m */; };
+		CDDC3D9E1D9E6AB200FCB0EE /* BSKWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D881D9E6AB200FCB0EE /* BSKWindow.m */; };
+		CDDC3D9F1D9E6AB200FCB0EE /* BugshotConsoleLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D8A1D9E6AB200FCB0EE /* BugshotConsoleLogger.m */; };
+		CDDC3DA01D9E6AB200FCB0EE /* BugshotKit.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D8D1D9E6AB200FCB0EE /* BugshotKit.m */; };
+		CDDC3DA11D9E6AB200FCB0EE /* BugshotLumberjack.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D8F1D9E6AB200FCB0EE /* BugshotLumberjack.m */; };
+		CDDC3DA21D9E6AB200FCB0EE /* MABGTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D911D9E6AB200FCB0EE /* MABGTimer.m */; };
+		CDDC3DA31D9E6AB200FCB0EE /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = CDDC3D931D9E6AB200FCB0EE /* UIImage+ImageEffects.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CDDC3CF31D9CFEE600FCB0EE /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		4AC8B2A9B34015BCBB51AB11 /* Pods_BugshotLumberjack.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_BugshotLumberjack.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDDC3CF51D9CFEE600FCB0EE /* libBugshotLumberjack.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libBugshotLumberjack.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		CDDC3D731D9E6AB200FCB0EE /* BSKAnnotationArrowView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKAnnotationArrowView.h; sourceTree = "<group>"; };
+		CDDC3D741D9E6AB200FCB0EE /* BSKAnnotationArrowView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKAnnotationArrowView.m; sourceTree = "<group>"; };
+		CDDC3D751D9E6AB200FCB0EE /* BSKAnnotationBlurView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKAnnotationBlurView.h; sourceTree = "<group>"; };
+		CDDC3D761D9E6AB200FCB0EE /* BSKAnnotationBlurView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKAnnotationBlurView.m; sourceTree = "<group>"; };
+		CDDC3D771D9E6AB200FCB0EE /* BSKAnnotationBoxView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKAnnotationBoxView.h; sourceTree = "<group>"; };
+		CDDC3D781D9E6AB200FCB0EE /* BSKAnnotationBoxView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKAnnotationBoxView.m; sourceTree = "<group>"; };
+		CDDC3D791D9E6AB200FCB0EE /* BSKAnnotationView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKAnnotationView.h; sourceTree = "<group>"; };
+		CDDC3D7A1D9E6AB200FCB0EE /* BSKAnnotationView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKAnnotationView.m; sourceTree = "<group>"; };
+		CDDC3D7B1D9E6AB200FCB0EE /* BSKCheckerboardView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKCheckerboardView.h; sourceTree = "<group>"; };
+		CDDC3D7C1D9E6AB200FCB0EE /* BSKCheckerboardView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKCheckerboardView.m; sourceTree = "<group>"; };
+		CDDC3D7D1D9E6AB200FCB0EE /* BSKLogViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKLogViewController.h; sourceTree = "<group>"; };
+		CDDC3D7E1D9E6AB200FCB0EE /* BSKLogViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKLogViewController.m; sourceTree = "<group>"; };
+		CDDC3D7F1D9E6AB200FCB0EE /* BSKMainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKMainViewController.h; sourceTree = "<group>"; };
+		CDDC3D801D9E6AB200FCB0EE /* BSKMainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKMainViewController.m; sourceTree = "<group>"; };
+		CDDC3D811D9E6AB200FCB0EE /* BSKNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKNavigationController.h; sourceTree = "<group>"; };
+		CDDC3D821D9E6AB200FCB0EE /* BSKNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKNavigationController.m; sourceTree = "<group>"; };
+		CDDC3D831D9E6AB200FCB0EE /* BSKScreenshotViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKScreenshotViewController.h; sourceTree = "<group>"; };
+		CDDC3D841D9E6AB200FCB0EE /* BSKScreenshotViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKScreenshotViewController.m; sourceTree = "<group>"; };
+		CDDC3D851D9E6AB200FCB0EE /* BSKToggleButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKToggleButton.h; sourceTree = "<group>"; };
+		CDDC3D861D9E6AB200FCB0EE /* BSKToggleButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKToggleButton.m; sourceTree = "<group>"; };
+		CDDC3D871D9E6AB200FCB0EE /* BSKWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BSKWindow.h; sourceTree = "<group>"; };
+		CDDC3D881D9E6AB200FCB0EE /* BSKWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BSKWindow.m; sourceTree = "<group>"; };
+		CDDC3D891D9E6AB200FCB0EE /* BugshotConsoleLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BugshotConsoleLogger.h; sourceTree = "<group>"; };
+		CDDC3D8A1D9E6AB200FCB0EE /* BugshotConsoleLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BugshotConsoleLogger.m; sourceTree = "<group>"; };
+		CDDC3D8B1D9E6AB200FCB0EE /* BugshotKit-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "BugshotKit-Prefix.pch"; sourceTree = "<group>"; };
+		CDDC3D8C1D9E6AB200FCB0EE /* BugshotKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BugshotKit.h; sourceTree = "<group>"; };
+		CDDC3D8D1D9E6AB200FCB0EE /* BugshotKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BugshotKit.m; sourceTree = "<group>"; };
+		CDDC3D8E1D9E6AB200FCB0EE /* BugshotLumberjack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BugshotLumberjack.h; sourceTree = "<group>"; };
+		CDDC3D8F1D9E6AB200FCB0EE /* BugshotLumberjack.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BugshotLumberjack.m; sourceTree = "<group>"; };
+		CDDC3D901D9E6AB200FCB0EE /* MABGTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MABGTimer.h; sourceTree = "<group>"; };
+		CDDC3D911D9E6AB200FCB0EE /* MABGTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MABGTimer.m; sourceTree = "<group>"; };
+		CDDC3D921D9E6AB200FCB0EE /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
+		CDDC3D931D9E6AB200FCB0EE /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
+		DA921652C22AC83910054608 /* Pods-BugshotLumberjack.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BugshotLumberjack.release.xcconfig"; path = "Pods/Target Support Files/Pods-BugshotLumberjack/Pods-BugshotLumberjack.release.xcconfig"; sourceTree = "<group>"; };
+		F711B2B49160C0E443B562DF /* Pods-BugshotLumberjack.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BugshotLumberjack.debug.xcconfig"; path = "Pods/Target Support Files/Pods-BugshotLumberjack/Pods-BugshotLumberjack.debug.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CDDC3CF21D9CFEE600FCB0EE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6387324C1F92324A5A36212B /* Pods_BugshotLumberjack.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2EE3F22E4CF0133C34768D0D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4AC8B2A9B34015BCBB51AB11 /* Pods_BugshotLumberjack.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		52C909FAEAA795E8F50F5EB4 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				F711B2B49160C0E443B562DF /* Pods-BugshotLumberjack.debug.xcconfig */,
+				DA921652C22AC83910054608 /* Pods-BugshotLumberjack.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		CDDC3CEC1D9CFEE600FCB0EE = {
+			isa = PBXGroup;
+			children = (
+				CDDC3D721D9E6AB200FCB0EE /* BugshotLumberjack */,
+				CDDC3CF61D9CFEE600FCB0EE /* Products */,
+				52C909FAEAA795E8F50F5EB4 /* Pods */,
+				2EE3F22E4CF0133C34768D0D /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		CDDC3CF61D9CFEE600FCB0EE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CDDC3CF51D9CFEE600FCB0EE /* libBugshotLumberjack.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CDDC3D721D9E6AB200FCB0EE /* BugshotLumberjack */ = {
+			isa = PBXGroup;
+			children = (
+				CDDC3D731D9E6AB200FCB0EE /* BSKAnnotationArrowView.h */,
+				CDDC3D741D9E6AB200FCB0EE /* BSKAnnotationArrowView.m */,
+				CDDC3D751D9E6AB200FCB0EE /* BSKAnnotationBlurView.h */,
+				CDDC3D761D9E6AB200FCB0EE /* BSKAnnotationBlurView.m */,
+				CDDC3D771D9E6AB200FCB0EE /* BSKAnnotationBoxView.h */,
+				CDDC3D781D9E6AB200FCB0EE /* BSKAnnotationBoxView.m */,
+				CDDC3D791D9E6AB200FCB0EE /* BSKAnnotationView.h */,
+				CDDC3D7A1D9E6AB200FCB0EE /* BSKAnnotationView.m */,
+				CDDC3D7B1D9E6AB200FCB0EE /* BSKCheckerboardView.h */,
+				CDDC3D7C1D9E6AB200FCB0EE /* BSKCheckerboardView.m */,
+				CDDC3D7D1D9E6AB200FCB0EE /* BSKLogViewController.h */,
+				CDDC3D7E1D9E6AB200FCB0EE /* BSKLogViewController.m */,
+				CDDC3D7F1D9E6AB200FCB0EE /* BSKMainViewController.h */,
+				CDDC3D801D9E6AB200FCB0EE /* BSKMainViewController.m */,
+				CDDC3D811D9E6AB200FCB0EE /* BSKNavigationController.h */,
+				CDDC3D821D9E6AB200FCB0EE /* BSKNavigationController.m */,
+				CDDC3D831D9E6AB200FCB0EE /* BSKScreenshotViewController.h */,
+				CDDC3D841D9E6AB200FCB0EE /* BSKScreenshotViewController.m */,
+				CDDC3D851D9E6AB200FCB0EE /* BSKToggleButton.h */,
+				CDDC3D861D9E6AB200FCB0EE /* BSKToggleButton.m */,
+				CDDC3D871D9E6AB200FCB0EE /* BSKWindow.h */,
+				CDDC3D881D9E6AB200FCB0EE /* BSKWindow.m */,
+				CDDC3D891D9E6AB200FCB0EE /* BugshotConsoleLogger.h */,
+				CDDC3D8A1D9E6AB200FCB0EE /* BugshotConsoleLogger.m */,
+				CDDC3D8B1D9E6AB200FCB0EE /* BugshotKit-Prefix.pch */,
+				CDDC3D8C1D9E6AB200FCB0EE /* BugshotKit.h */,
+				CDDC3D8D1D9E6AB200FCB0EE /* BugshotKit.m */,
+				CDDC3D8E1D9E6AB200FCB0EE /* BugshotLumberjack.h */,
+				CDDC3D8F1D9E6AB200FCB0EE /* BugshotLumberjack.m */,
+				CDDC3D901D9E6AB200FCB0EE /* MABGTimer.h */,
+				CDDC3D911D9E6AB200FCB0EE /* MABGTimer.m */,
+				CDDC3D921D9E6AB200FCB0EE /* UIImage+ImageEffects.h */,
+				CDDC3D931D9E6AB200FCB0EE /* UIImage+ImageEffects.m */,
+			);
+			path = BugshotLumberjack;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CDDC3CF41D9CFEE600FCB0EE /* BugshotLumberjack */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CDDC3CFE1D9CFEE600FCB0EE /* Build configuration list for PBXNativeTarget "BugshotLumberjack" */;
+			buildPhases = (
+				D92171816A329D2CD77717BB /* [CP] Check Pods Manifest.lock */,
+				CDDC3CF11D9CFEE600FCB0EE /* Sources */,
+				CDDC3CF21D9CFEE600FCB0EE /* Frameworks */,
+				CDDC3CF31D9CFEE600FCB0EE /* CopyFiles */,
+				D4510CEAB8525E55C895F598 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BugshotLumberjack;
+			productName = BugshotLumberjack;
+			productReference = CDDC3CF51D9CFEE600FCB0EE /* libBugshotLumberjack.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CDDC3CED1D9CFEE600FCB0EE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0800;
+				ORGANIZATIONNAME = same;
+				TargetAttributes = {
+					CDDC3CF41D9CFEE600FCB0EE = {
+						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = KQW6UNZE8J;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = CDDC3CF01D9CFEE600FCB0EE /* Build configuration list for PBXProject "BugshotLumberjack" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = CDDC3CEC1D9CFEE600FCB0EE;
+			productRefGroup = CDDC3CF61D9CFEE600FCB0EE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CDDC3CF41D9CFEE600FCB0EE /* BugshotLumberjack */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D4510CEAB8525E55C895F598 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-BugshotLumberjack/Pods-BugshotLumberjack-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D92171816A329D2CD77717BB /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CDDC3CF11D9CFEE600FCB0EE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CDDC3DA31D9E6AB200FCB0EE /* UIImage+ImageEffects.m in Sources */,
+				CDDC3DA11D9E6AB200FCB0EE /* BugshotLumberjack.m in Sources */,
+				CDDC3D9B1D9E6AB200FCB0EE /* BSKNavigationController.m in Sources */,
+				CDDC3D991D9E6AB200FCB0EE /* BSKLogViewController.m in Sources */,
+				CDDC3D971D9E6AB200FCB0EE /* BSKAnnotationView.m in Sources */,
+				CDDC3D941D9E6AB200FCB0EE /* BSKAnnotationArrowView.m in Sources */,
+				CDDC3D9F1D9E6AB200FCB0EE /* BugshotConsoleLogger.m in Sources */,
+				CDDC3DA01D9E6AB200FCB0EE /* BugshotKit.m in Sources */,
+				CDDC3D9A1D9E6AB200FCB0EE /* BSKMainViewController.m in Sources */,
+				CDDC3D961D9E6AB200FCB0EE /* BSKAnnotationBoxView.m in Sources */,
+				CDDC3DA21D9E6AB200FCB0EE /* MABGTimer.m in Sources */,
+				CDDC3D981D9E6AB200FCB0EE /* BSKCheckerboardView.m in Sources */,
+				CDDC3D951D9E6AB200FCB0EE /* BSKAnnotationBlurView.m in Sources */,
+				CDDC3D9D1D9E6AB200FCB0EE /* BSKToggleButton.m in Sources */,
+				CDDC3D9C1D9E6AB200FCB0EE /* BSKScreenshotViewController.m in Sources */,
+				CDDC3D9E1D9E6AB200FCB0EE /* BSKWindow.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		CDDC3CFC1D9CFEE600FCB0EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PUBLIC_HEADERS_FOLDER_PATH = BugshotKit.h;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		CDDC3CFD1D9CFEE600FCB0EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PUBLIC_HEADERS_FOLDER_PATH = BugshotKit.h;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CDDC3CFF1D9CFEE600FCB0EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F711B2B49160C0E443B562DF /* Pods-BugshotLumberjack.debug.xcconfig */;
+			buildSettings = {
+				DEVELOPMENT_TEAM = KQW6UNZE8J;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		CDDC3D001D9CFEE600FCB0EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = DA921652C22AC83910054608 /* Pods-BugshotLumberjack.release.xcconfig */;
+			buildSettings = {
+				DEVELOPMENT_TEAM = KQW6UNZE8J;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CDDC3CF01D9CFEE600FCB0EE /* Build configuration list for PBXProject "BugshotLumberjack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CDDC3CFC1D9CFEE600FCB0EE /* Debug */,
+				CDDC3CFD1D9CFEE600FCB0EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CDDC3CFE1D9CFEE600FCB0EE /* Build configuration list for PBXNativeTarget "BugshotLumberjack" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CDDC3CFF1D9CFEE600FCB0EE /* Debug */,
+				CDDC3D001D9CFEE600FCB0EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CDDC3CED1D9CFEE600FCB0EE /* Project object */;
+}

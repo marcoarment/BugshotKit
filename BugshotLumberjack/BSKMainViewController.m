@@ -290,18 +290,18 @@ static UIImage *rotateIfNeeded(UIImage *src);
     NSString *appNameString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
     NSString *appVersionString = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
 
-    size_t size;
-    sysctlbyname("hw.machine", NULL, &size, NULL, 0); 
-    char *name = malloc(size);
-    sysctlbyname("hw.machine", name, &size, NULL, 0);
-    NSString *modelIdentifier = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
-    free(name);
+//    size_t size;
+//    sysctlbyname("hw.machine", NULL, &size, NULL, 0);
+//    char *name = malloc(size);
+//    sysctlbyname("hw.machine", name, &size, NULL, 0);
+//    NSString *modelIdentifier = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
+//    free(name);
 
     NSDictionary *userInfo = @{
         @"appName" : appNameString,
         @"appVersion" : appVersionString,
         @"systemVersion" : UIDevice.currentDevice.systemVersion,
-        @"deviceModel" : modelIdentifier,
+//        @"deviceModel" : modelIdentifier,
     };
     
     NSDictionary *extraUserInfo = BugshotKit.sharedManager.extraInfoBlock ? BugshotKit.sharedManager.extraInfoBlock() : nil;

@@ -31,7 +31,7 @@
 
 - (void)applicationWillEnterForeground:(NSNotification *)n
 {
-    [BugshotKit dismissAnimated:NO completion:NULL];
+    [BugshotKit dismissAninmated:NO completion:NULL];
 }
 
 - (void)applicationDidBecomeActive:(NSNotification *)n
