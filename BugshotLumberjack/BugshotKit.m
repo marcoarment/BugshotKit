@@ -7,7 +7,18 @@
 #import "BSKNavigationController.h"
 #import <asl.h>
 #import "MABGTimer.h"
+#import "BugshotConsoleLogger.h"
+
 @import CoreText;
+
+@interface BugshotLogMessage : DDLogMessage
+
+@end
+
+@implementation BugshotLogMessage
+
+@end
+
 
 @interface UIViewController ()
 - (void)attentionClassDumpUser:(id)fp8 yesItsUsAgain:(id)fp12 althoughSwizzlingAndOverridingPrivateMethodsIsFun:(id)fp16 itWasntMuchFunWhenYourAppStoppedWorking:(id)fp20 pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:(id)fp24;
@@ -43,14 +54,12 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 @property (nonatomic, weak) UIWindow *window;
 @property (nonatomic) NSMapTable *windowsWithGesturesAttached;
 
-@property (nonatomic) NSMutableSet *collectedASLMessageIDs;
-@property (nonatomic) NSMutableArray *consoleMessages;
-
 @property (nonatomic) dispatch_queue_t logQueue;
-@property (nonatomic) BSK_MABGTimer *consoleRefreshThrottler;
 
 @property (nonatomic) BSKInvocationGestureMask invocationGestures;
 @property (nonatomic) NSUInteger invocationGesturesTouchCount;
+
+@property (nonatomic, strong) BugshotConsoleLogger *logger;
 
 @end
 
@@ -62,6 +71,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     static BugshotKit *sharedManager;
     dispatch_once(&onceToken, ^{
         sharedManager = [[self alloc] init];
+        sharedManager.displayConsoleTextInLogViewer = YES;
     });
     return sharedManager;
 }
@@ -72,7 +82,8 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BugshotKit.sharedManager.invocationGestures = invocationGestures;
     BugshotKit.sharedManager.invocationGesturesTouchCount = fingerCount;
     BugshotKit.sharedManager.destinationEmailAddress = toEmailAddress;
-    
+    [BugshotKit setDisplayConsoleTextInLogViewer:YES];
+
     // dispatched to next main-thread loop so the app delegate has a chance to set up its window
     dispatch_async(dispatch_get_main_queue(), ^{
         [BugshotKit.sharedManager ensureWindow];
@@ -146,11 +157,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 - (instancetype)init
 {
     if ( (self = [super init]) ) {
-        if ([self.class isProbablyAppStoreBuild]) {
-            self.isDisabled = YES;
-            NSLog(@"[BugshotKit] App Store build detected. BugshotKit is disabled.");
-            return self;
-        }
+//        if ([self.class isProbablyAppStoreBuild]) {
+//            self.isDisabled = YES;
+//            NSLog(@"[BugshotKit] App Store build detected. BugshotKit is disabled.");
+//            return self;
+//        }
         
         self.windowsWithGesturesAttached = [NSMapTable weakToWeakObjectsMapTable];
         
@@ -160,34 +171,12 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         self.toggleOnColor = [UIColor colorWithRed:0.533f green:0.835f blue:0.412f alpha:1.0f]; // iOS 7 green
         self.toggleOffColor = [UIColor colorWithRed:184/255.0f green:184/255.0f blue:191/255.0f alpha:1.0f]; // iOS 7ish light gray
         
-        self.collectedASLMessageIDs = [NSMutableSet set];
-        self.consoleMessages = [NSMutableArray array];
+        self.logger = [[BugshotConsoleLogger alloc] init];
+        
         self.logQueue = dispatch_queue_create("BugshotKit console", NULL);
-        
-        self.consoleLogMaxLines = 500;
-        
-        self.consoleRefreshThrottler = [[BSK_MABGTimer alloc] initWithObject:self behavior:BSK_MABGTimerCoalesce queueLabel:"BugshotKit console throttler"];
-        [self.consoleRefreshThrottler setTargetQueue:self.logQueue];
         
         [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(newWindowDidBecomeVisible:) name:UIWindowDidBecomeVisibleNotification object:nil];
         
-        // Notify on every write to stderr (so we can track NSLog real-time, without polling, when a console is showing)
-        source = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, (uintptr_t)fileno(stderr), DISPATCH_VNODE_WRITE, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
-        __weak BugshotKit *weakSelf = self;
-        dispatch_source_set_event_handler(source, ^{
-            [weakSelf.consoleRefreshThrottler afterDelay:0.5 do:^(id self) {
-                if ([self updateFromASL]) {
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        [NSNotificationCenter.defaultCenter postNotificationName:BSKNewLogMessageNotification object:nil];
-                    });
-                }
-            }];
-        });
-        
-        dispatch_async(self.logQueue, ^{
-            [self updateFromASL];
-            dispatch_resume(source);
-        });
     }
     return self;
 }
@@ -204,21 +193,21 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 {
     if (self.window) return;
     
-    self.window = UIApplication.sharedApplication.keyWindow;
+    self.window = [UIApplication.sharedApplication.windows firstObject];
     if (! self.window) self.window = UIApplication.sharedApplication.windows.lastObject;
     if (! self.window) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit cannot find any application windows" userInfo:nil] raise];
     if (! self.window.rootViewController) [[NSException exceptionWithName:NSGenericException reason:@"BugshotKit requires a rootViewController set on the window" userInfo:nil] raise];
 
     // The purpose of this is to immediately get rejected from App Store submissions in case you accidentally submit an app with BugshotKit.
     // BugshotKit is only meant to be used during development and beta testing. Do not ship it in App Store builds.
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wundeclared-selector"
-    if ([UIEvent.class instancesRespondToSelector:@selector(_gsEvent)] &&
-        [UIViewController.class instancesRespondToSelector:@selector(attentionClassDumpUser:yesItsUsAgain:althoughSwizzlingAndOverridingPrivateMethodsIsFun:itWasntMuchFunWhenYourAppStoppedWorking:pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:)]) {
-        // I can't believe I actually had a reason to call this method.
-        [self.window.rootViewController attentionClassDumpUser:nil yesItsUsAgain:nil althoughSwizzlingAndOverridingPrivateMethodsIsFun:nil itWasntMuchFunWhenYourAppStoppedWorking:nil pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:nil];
-    }
-#pragma clang diagnostic pop
+//#pragma clang diagnostic push
+//#pragma clang diagnostic ignored "-Wundeclared-selector"
+//    if ([UIEvent.class instancesRespondToSelector:@selector(_gsEvent)] &&
+//        [UIViewController.class instancesRespondToSelector:@selector(attentionClassDumpUser:yesItsUsAgain:althoughSwizzlingAndOverridingPrivateMethodsIsFun:itWasntMuchFunWhenYourAppStoppedWorking:pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:)]) {
+//        // I can't believe I actually had a reason to call this method.
+//        [self.window.rootViewController attentionClassDumpUser:nil yesItsUsAgain:nil althoughSwizzlingAndOverridingPrivateMethodsIsFun:nil itWasntMuchFunWhenYourAppStoppedWorking:nil pleaseRefrainFromDoingSoInTheFutureOkayThanksBye:nil];
+//    }
+//#pragma clang diagnostic pop
 }
 
 - (void)newWindowDidBecomeVisible:(NSNotification *)n
@@ -330,7 +319,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
         tgr.numberOfTouchesRequired = fingerCount;
         tgr.delegate = self;
         [window addGestureRecognizer:tgr];
-        NSLog(@"[BugshotKit] Enabled for %d-finger long press.", (int) fingerCount);
+//        DDLogDebug(@"[BugshotKit] Enabled for %d-finger long press.", (int) fingerCount);
     }
 }
 
@@ -408,7 +397,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     self.snapshotImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
 
-    if ([UIDevice currentDevice].systemVersion.floatValue < 8.0f && interfaceOrientation != UIInterfaceOrientationPortrait) {
+    if (interfaceOrientation != UIInterfaceOrientationPortrait) {
         self.snapshotImage = [[UIImage alloc] initWithCGImage:self.snapshotImage.CGImage scale:UIScreen.mainScreen.scale orientation:(
             interfaceOrientation == UIInterfaceOrientationPortraitUpsideDown ? UIImageOrientationDown : (
                 interfaceOrientation == UIInterfaceOrientationLandscapeLeft ? UIImageOrientationRight : UIImageOrientationLeft
@@ -424,11 +413,11 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     BSKNavigationController *nc = [[BSKNavigationController alloc] initWithRootViewController:mvc lockedToRotation:self.window.rootViewController.interfaceOrientation];
     self.presentedNavigationController = nc;
     nc.navigationBar.tintColor = BugshotKit.sharedManager.annotationFillColor;
-    nc.navigationBar.titleTextAttributes = @{ NSForegroundColorAttributeName:BugshotKit.sharedManager.annotationFillColor };
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
 }
 
-+ (void)dismissAnimated:(BOOL)animated completion:(void(^)())completion {
++ (void)dismissAninmated:(BOOL)animated completion:(void(^)())completion
+{
     UIViewController *presentingVC = BugshotKit.sharedManager.presentedNavigationController.presentingViewController;
     if (presentingVC) {
         [presentingVC dismissViewControllerAnimated:animated completion:completion];
@@ -449,18 +438,20 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
 #pragma mark - Console logging
 
 - (void)currentConsoleLogWithDateStamps:(BOOL)dateStamps
-                         withCompletion:(void (^)(NSString *result))completion
-{
+                         withCompletion:(void (^)(NSString *result))completion{
+
     dispatch_async(self.logQueue, ^{
         NSMutableString *string = [NSMutableString string];
-
+        
         char fdate[24];
-        for (BSKLogMessage *msg in self.consoleMessages) {
+        for (NSInteger i = self.logger.currentLogMessages.count - 1; i >= 0; i--) {
+            DDLogMessage *msg = self.logger.currentLogMessages[i];
             if (dateStamps) {
-                time_t timestamp = (time_t) msg.timestamp;
+                time_t timestamp = (time_t) msg.timestamp.timeIntervalSince1970;
                 struct tm *lt = localtime(&timestamp);
                 strftime(fdate, 24, "%Y-%m-%d %T", lt);
-                [string appendFormat:@"%s.%03d %@\n", fdate, (int) (1000.0 * (msg.timestamp - floor(msg.timestamp))), msg.message];
+                NSString *text = [self.logger textWithLogMessage:msg];
+                [string appendFormat:@"%s.%03d %@\n", fdate, (int) (1000.0 * (msg.timestamp.timeIntervalSince1970 - floor(msg.timestamp.timeIntervalSince1970))),text];
             } else {
                 [string appendFormat:@"%@\n", msg.message];
             }
@@ -470,16 +461,14 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
             completion(string);
         });
     });
+
 }
 
 - (void)clearLog
 {
     if (self.isDisabled) return;
     
-    [self.consoleMessages removeAllObjects];
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [NSNotificationCenter.defaultCenter postNotificationName:BSKNewLogMessageNotification object:nil];
-    });
+    [self.logger clearConsole];
 }
 
 + (void)addLogMessage:(NSString *)message
@@ -488,86 +477,12 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     if (manager.isDisabled) return;
     
     dispatch_async(manager.logQueue, ^{
-        [manager addLogMessage:message timestamp:[NSDate date].timeIntervalSince1970];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [NSNotificationCenter.defaultCenter postNotificationName:BSKNewLogMessageNotification object:nil];
-        });
+        BugshotLogMessage * log = BugshotLogMessage.new;
+        log->_message = message;
+        [manager.logger logMessage:log];
     });
 }
 
-// assumed to always be in logQueue
-- (void)addLogMessage:(NSString *)message timestamp:(NSTimeInterval)timestamp
-{
-    BSKLogMessage *msg = [BSKLogMessage new];
-    msg.message = message;
-    msg.timestamp = timestamp;
-    [self.consoleMessages addObject:msg];
-    
-    // once the log has exceeded the length limit by 25%, prune it to the length limit
-    if (self.consoleMessages.count > self.consoleLogMaxLines * 1.25) {
-        [self.consoleMessages removeObjectsInRange:NSMakeRange(0, self.consoleMessages.count - self.consoleLogMaxLines)];
-    }
-}
-
-// Because aslresponse_next is now deprecated.
-asl_object_t SystemSafeASLNext(asl_object_t r) {
-    if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f) {
-        return asl_next(r);
-    }
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    // The deprecation attribute incorrectly states that the replacement method, asl_next()
-    // is available in __IPHONE_7_0; asl_next() first appears in __IPHONE_8_0.
-    // This would require both a compile and runtime check to properly implement the new method
-    // while the minimum deployment target for this project remains iOS 7.0.
-    return aslresponse_next(r);
-#pragma clang diagnostic pop
-}
-
-// assumed to always be in logQueue
-- (BOOL)updateFromASL
-{
-    pid_t myPID = getpid();
-
-    // thanks http://www.cocoanetics.com/2011/03/accessing-the-ios-system-log/
-    
-    aslmsg q, m;
-    q = asl_new(ASL_TYPE_QUERY);
-    aslresponse r = asl_search(NULL, q);
-    BOOL foundNewEntries = NO;
-    
-    while ( (m = SystemSafeASLNext(r)) ) {
-        if (myPID != atol(asl_get(m, ASL_KEY_PID))) continue;
-
-        // dupe checking
-        NSNumber *msgID = @( atoll(asl_get(m, ASL_KEY_MSG_ID)) );
-        if ([_collectedASLMessageIDs containsObject:msgID]) continue;
-        [_collectedASLMessageIDs addObject:msgID];
-        foundNewEntries = YES;
-        
-        NSTimeInterval msgTime = (NSTimeInterval) atol(asl_get(m, ASL_KEY_TIME)) + ((NSTimeInterval) atol(asl_get(m, ASL_KEY_TIME_NSEC)) / 1000000000.0);
-
-        const char *msg = asl_get(m, ASL_KEY_MSG);
-        if (msg == NULL) { continue; }
-        [self addLogMessage:[NSString stringWithUTF8String:msg] timestamp:msgTime];
-    }
-    
-    if ([UIDevice currentDevice].systemVersion.floatValue >= 8.0f) {
-        asl_release(r);
-    } else {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        // The deprecation attribute incorrectly states that the replacement method, asl_release()
-        // is available in __IPHONE_7_0; asl_release() first appears in __IPHONE_8_0.
-        // This would require both a compile and runtime check to properly implement the new method
-        // while the minimum deployment target for this project remains iOS 7.0.
-        aslresponse_free(r);
-#pragma clang diagnostic pop
-    }
-    asl_free(q);
-
-    return foundNewEntries;
-}
 
 - (void)consoleImageWithSize:(CGSize)size
                     fontSize:(CGFloat)fontSize
@@ -614,37 +529,37 @@ asl_object_t SystemSafeASLNext(asl_object_t r) {
     }];
 }
 
-#pragma mark - App Store build detection
-
-+ (BOOL)isProbablyAppStoreBuild
-{
-#if TARGET_IPHONE_SIMULATOR
-    return NO;
-#else
-    // Adapted from https://github.com/blindsightcorp/BSMobileProvision
-
-    NSString *binaryMobileProvision = [NSString stringWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"embedded" ofType:@"mobileprovision"] encoding:NSISOLatin1StringEncoding error:NULL];
-    if (! binaryMobileProvision) return YES; // no provision
-
-    NSScanner *scanner = [NSScanner scannerWithString:binaryMobileProvision];
-    NSString *plistString;
-    if (! [scanner scanUpToString:@"<plist" intoString:nil] || ! [scanner scanUpToString:@"</plist>" intoString:&plistString]) return YES; // no XML plist found in provision
-    plistString = [plistString stringByAppendingString:@"</plist>"];
-
-    NSData *plistdata_latin1 = [plistString dataUsingEncoding:NSISOLatin1StringEncoding];
-    NSError *error = nil;
-    NSDictionary *mobileProvision = [NSPropertyListSerialization propertyListWithData:plistdata_latin1 options:NSPropertyListImmutable format:NULL error:&error];
-    if (error) return YES; // unknown plist format
-
-    if (! mobileProvision || ! mobileProvision.count) return YES; // no entitlements
-    
-    if (mobileProvision[@"ProvisionsAllDevices"]) return NO; // enterprise provisioning
-    
-    if (mobileProvision[@"ProvisionedDevices"] && ((NSDictionary *)mobileProvision[@"ProvisionedDevices"]).count) return NO; // development or ad-hoc
-
-    return YES; // expected development/enterprise/ad-hoc entitlements not found
-#endif
-}
+//#pragma mark - App Store build detection
+//
+//+ (BOOL)isProbablyAppStoreBuild
+//{
+//#if TARGET_IPHONE_SIMULATOR
+//    return NO;
+//#endif
+//
+//    // Adapted from https://github.com/blindsightcorp/BSMobileProvision
+//
+//    NSString *binaryMobileProvision = [NSString stringWithContentsOfFile:[NSBundle.mainBundle pathForResource:@"embedded" ofType:@"mobileprovision"] encoding:NSISOLatin1StringEncoding error:NULL];
+//    if (! binaryMobileProvision) return YES; // no provision
+//
+//    NSScanner *scanner = [NSScanner scannerWithString:binaryMobileProvision];
+//    NSString *plistString;
+//    if (! [scanner scanUpToString:@"<plist" intoString:nil] || ! [scanner scanUpToString:@"</plist>" intoString:&plistString]) return YES; // no XML plist found in provision
+//    plistString = [plistString stringByAppendingString:@"</plist>"];
+//
+//    NSData *plistdata_latin1 = [plistString dataUsingEncoding:NSISOLatin1StringEncoding];
+//    NSError *error = nil;
+//    NSDictionary *mobileProvision = [NSPropertyListSerialization propertyListWithData:plistdata_latin1 options:NSPropertyListImmutable format:NULL error:&error];
+//    if (error) return YES; // unknown plist format
+//
+//    if (! mobileProvision || ! mobileProvision.count) return YES; // no entitlements
+//    
+//    if (mobileProvision[@"ProvisionsAllDevices"]) return NO; // enterprise provisioning
+//    
+//    if (mobileProvision[@"ProvisionedDevices"] && ((NSDictionary *)mobileProvision[@"ProvisionedDevices"]).count) return NO; // development or ad-hoc
+//
+//    return YES; // expected development/enterprise/ad-hoc entitlements not found
+//}
 
 
 @end

@@ -32,9 +32,10 @@ static int markerNumber = 0;
 
 - (void)viewDidLoad
 {
+    BugshotKit.sharedManager.displayConsoleTextInLogViewer = YES;
     [super viewDidLoad];
-
     UIView *console = ([BugshotKit.sharedManager displayConsoleTextInLogViewer] ? self.consoleTextView : self.consoleView);
+    console = self.consoleTextView;
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"|[c]|" options:0 metrics:nil views:@{ @"c" : console }]];
     [self.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[top][c]|" options:0 metrics:nil views:@{ @"c" : console, @"top" : self.topLayoutGuide }]];
 
@@ -54,19 +55,19 @@ static int markerNumber = 0;
     view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     view.autoresizesSubviews = YES;
 
-    if ([BugshotKit.sharedManager displayConsoleTextInLogViewer]) {
+//    if ([BugshotKit.sharedManager displayConsoleTextInLogViewer]) {
         self.automaticallyAdjustsScrollViewInsets = NO;
         self.consoleTextView = [[UITextView alloc] initWithFrame:frame];
         self.consoleTextView.translatesAutoresizingMaskIntoConstraints = NO;
         self.consoleTextView.editable = NO;
         self.consoleTextView.font = [BugshotKit consoleFontWithSize:(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ? 13.0f : 9.0f)];
         [view addSubview:self.consoleTextView];
-    }
-    else {
-        self.consoleView = [[UIImageView alloc] initWithFrame:frame];
-        self.consoleView.translatesAutoresizingMaskIntoConstraints = NO;
-        [view addSubview:self.consoleView];
-    }
+//    }
+//    else {
+//        self.consoleView = [[UIImageView alloc] initWithFrame:frame];
+//        self.consoleView.translatesAutoresizingMaskIntoConstraints = NO;
+//        [view addSubview:self.consoleView];
+//    }
 
     self.view = view;
 }
