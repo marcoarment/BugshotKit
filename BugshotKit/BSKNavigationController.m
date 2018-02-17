@@ -25,7 +25,7 @@
 - (UIStatusBarStyle)preferredStatusBarStyle { return UIStatusBarStyleDefault; }
 - (BOOL)prefersStatusBarHidden { return NO; }
 
-- (NSUInteger)supportedInterfaceOrientations
+- (UIInterfaceOrientationMask)supportedInterfaceOrientations
 {
     return 1 << self.lockedOrientation;
 }
