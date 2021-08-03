@@ -425,6 +425,7 @@ UIImage *BSKImageWithDrawing(CGSize size, void (^drawingCommands)())
     self.presentedNavigationController = nc;
     nc.navigationBar.tintColor = BugshotKit.sharedManager.annotationFillColor;
     nc.navigationBar.titleTextAttributes = @{ NSForegroundColorAttributeName:BugshotKit.sharedManager.annotationFillColor };
+    nc.modalPresentationStyle = UIModalPresentationFullScreen;
     [presentingViewController presentViewController:nc animated:YES completion:NULL];
 }
 
